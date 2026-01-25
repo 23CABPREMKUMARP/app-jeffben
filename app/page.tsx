@@ -301,7 +301,7 @@ export default function ProductPage() {
               viewport={{ once: true }}
             >
               <h2 className="text-3xl md:text-5xl font-bold mb-2">Executive Leadership</h2>
-              <p className="text-xl text-blue-600  font-semibold mb-6">JeffBen — Founder & CEO</p>
+              <p className="text-xl text-blue-600  font-semibold mb-6">JeffBen — Founder and Managing Director</p>
 
               <p className="text-lg text-black  leading-relaxed mb-6">
                 A distinguished technologist and entrepreneur focused on addressing complex infrastructure challenges through innovation. With expertise in systems engineering and a strategic vision for urban advancement, JeffBen established JEFFBEN Systems to redefine public accessibility and operational efficiency in modern transit.
