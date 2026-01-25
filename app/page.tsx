@@ -95,7 +95,8 @@ export default function ProductPage() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="mt-12 rounded-full bg-black px-10 py-4 text-white text-lg font-medium transition-shadow hover:shadow-2xl"
+                onClick={() => document.getElementById('solutions')?.scrollIntoView({ behavior: 'smooth' })}
+                className="mt-12 rounded-full bg-black px-10 py-4 text-white text-lg font-medium transition-shadow hover:shadow-2xl cursor-pointer"
               >
                 Explore Solutions
               </motion.button>
@@ -332,7 +333,7 @@ export default function ProductPage() {
       </section>
 
       {/* ================= SERVICES PAGE CONTENT ================= */}
-      <section className="relative py-12 md:py-24 bg-white text-black overflow-hidden">
+      <section id="solutions" className="relative py-12 md:py-24 bg-white text-black overflow-hidden">
         <div className="container mx-auto px-6 max-w-6xl">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-6xl font-bold">Solutions Portfolio</h2>
