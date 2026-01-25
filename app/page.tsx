@@ -75,7 +75,7 @@ export default function ProductPage() {
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.4, duration: 0.6 }}
                 viewport={{ once: true }}
-                className="text-4xl sm:text-6xl md:text-8xl font-bold bg-gradient-to-b from-black to-zinc-600 bg-clip-text text-transparent italic tracking-tighter leading-[0.9]"
+                className="text-4xl sm:text-6xl md:text-8xl font-bold bg-gradient-to-b from-black to-zinc-600 bg-clip-text text-transparent tracking-tight leading-tight"
               >
                 Welcome to <br className="hidden md:block" />
                 JEFF<span className="text-orange-600">BEN</span> Systems
@@ -151,8 +151,8 @@ export default function ProductPage() {
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl md:text-5xl font-bold mb-8">Strategic Capabilities</h2>
-            <p className="text-lg md:text-xl text-neutral-600 mb-12 italic">
+            <h2 className="text-3xl md:text-5xl font-bold mb-8 tracking-tight">Strategic Capabilities</h2>
+            <p className="text-lg md:text-xl text-neutral-600 mb-12">
               We engineer enterprise-grade transit ecosystems focused on operational excellence:
             </p>
 
@@ -179,7 +179,7 @@ export default function ProductPage() {
               ))}
             </div>
 
-            <p className="mt-12 text-lg text-neutral-600 italic">
+            <p className="mt-12 text-lg text-neutral-600">
               Optimizing operational efficiency while elevating the passenger journey.
             </p>
           </motion.div>
@@ -199,7 +199,7 @@ export default function ProductPage() {
               className="space-y-8 text-left"
             >
               <div>
-                <h2 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold mb-6 italic text-black leading-tight">Corporate Overview</h2>
+                <h2 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold mb-6 text-black leading-tight tracking-tight">Corporate Overview</h2>
                 <div className="space-y-6">
                   <p className="text-lg md:text-xl lg:text-2xl text-neutral-900 leading-relaxed font-medium">
                     JEFFBEN Systems is a premier technology enterprise dedicated to the modernization of public infrastructure through industrial-grade automation. We specialize in the development of sophisticated telemetry and real-time information architectures for metropolitan transit.
@@ -433,7 +433,7 @@ export default function ProductPage() {
           ))}
         </div>
 
-        <p className="mt-16 text-2xl md:text-3xl font-bold italic text-blue-600 ">
+        <p className="mt-16 text-2xl md:text-3xl font-bold text-blue-600">
           &quot;Advancing Transit, Enhancing Lives.&quot;
         </p>
       </section>
