@@ -92,14 +92,24 @@ export default function ProductPage() {
                 Metropolitan Public Transit Ecosystems
               </motion.h2>
 
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => document.getElementById('solutions')?.scrollIntoView({ behavior: 'smooth' })}
-                className="mt-12 rounded-full bg-black px-10 py-4 text-white text-lg font-medium transition-shadow hover:shadow-2xl cursor-pointer"
-              >
-                Explore Solutions
-              </motion.button>
+              <div className="mt-12 flex flex-wrap items-center justify-center gap-4">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => document.getElementById('solutions')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="rounded-full bg-black px-10 py-4 text-white text-lg font-medium transition-shadow hover:shadow-2xl cursor-pointer"
+                >
+                  Explore Solutions
+                </motion.button>
+                <motion.a
+                  href="/bus-booking"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="rounded-full bg-orange-600 px-10 py-4 text-white text-lg font-medium transition-shadow hover:shadow-2xl cursor-pointer flex items-center gap-2"
+                >
+                  Book Your Bus
+                </motion.a>
+              </div>
             </div>
           </motion.div>
         </AuroraBackground>
