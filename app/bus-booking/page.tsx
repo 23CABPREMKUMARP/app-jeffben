@@ -50,18 +50,33 @@ export default function BusBookingPage() {
         }, 100);
     };
 
-    // Fail-safe: Automatically dismiss video after 10 seconds if it hangs
+    // Fail-safe: Automatically dismiss video after 6 seconds if it hangs
     React.useEffect(() => {
         let timer: NodeJS.Timeout;
+
+        const forceEnd = () => {
+            if (isPlayingVideo) {
+                console.log("Forced video end");
+                handleVideoEnd();
+            }
+        };
+
         if (isPlayingVideo) {
-            timer = setTimeout(() => {
-                if (isPlayingVideo) {
-                    console.log("Video fail-safe triggered");
-                    handleVideoEnd();
-                }
-            }, 10000); // 10 second limit
+            // Shortened 6 second limit
+            timer = setTimeout(forceEnd, 6000);
+
+            // Global click/touch to skip
+            window.addEventListener('click', forceEnd);
+            window.addEventListener('touchstart', forceEnd);
+            window.addEventListener('keydown', forceEnd);
         }
-        return () => clearTimeout(timer);
+
+        return () => {
+            clearTimeout(timer);
+            window.removeEventListener('click', forceEnd);
+            window.removeEventListener('touchstart', forceEnd);
+            window.removeEventListener('keydown', forceEnd);
+        };
     }, [isPlayingVideo]);
 
     const handleSelectBus = (bus: any) => {
@@ -221,15 +236,15 @@ export default function BusBookingPage() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        onClick={handleVideoEnd}
-                        className="fixed inset-0 z-[9999] bg-black flex items-center justify-center cursor-pointer"
+                        // onClick handled by global listener in useEffect
+                        className="fixed inset-0 z-[999999] bg-black/95 flex flex-col items-center justify-center cursor-pointer select-none touch-none"
                     >
                         <video
                             key={`video-${searchId}`}
                             autoPlay
                             muted
                             playsInline
-                            className="w-full h-full object-cover pointer-events-none"
+                            className="w-full h-full object-cover pointer-events-none opacity-80"
                             onEnded={handleVideoEnd}
                             onError={(e) => {
                                 console.error("Video failed to play", e);
@@ -239,25 +254,37 @@ export default function BusBookingPage() {
                             <source src="/videos/transition.mp4" type="video/mp4" />
                         </video>
 
-                        <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+                        {/* Overlay Content */}
+                        <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center pointer-events-none">
+                            <motion.div
+                                initial={{ scale: 0.9, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                transition={{ delay: 0.5 }}
+                                className="space-y-8"
+                            >
+                                <div className="space-y-2">
+                                    <h2 className="text-white text-3xl font-black uppercase tracking-[0.3em]">Arrived!</h2>
+                                    <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.5em] animate-pulse">
+                                        Preparing your bus results...
+                                    </p>
+                                </div>
 
-                        <div className="absolute bottom-20 inset-x-0 flex flex-col items-center gap-6">
-                            <motion.p
-                                animate={{ opacity: [0.3, 1, 0.3] }}
-                                transition={{ duration: 2, repeat: Infinity }}
-                                className="text-white/60 text-xs font-black uppercase tracking-[0.4em]"
-                            >
-                                Tap anywhere to skip
-                            </motion.p>
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleVideoEnd();
-                                }}
-                                className="px-14 py-5 bg-[#FF6B00] text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-3xl hover:bg-[#E66200] transition-all active:scale-95 border-none"
-                            >
-                                Continue to Bus Listing
-                            </button>
+                                <div className="pt-8">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleVideoEnd();
+                                        }}
+                                        className="pointer-events-auto px-16 py-6 bg-white text-[#FF6B00] rounded-2xl font-black text-sm uppercase tracking-widest shadow-[0_0_50px_rgba(255,255,255,0.3)] hover:scale-110 transition-all active:scale-95 border-none cursor-pointer"
+                                    >
+                                        Skip Cinematic & View Buses
+                                    </button>
+                                </div>
+
+                                <p className="text-white/30 text-[9px] font-bold uppercase tracking-[0.2em]">
+                                    Or tap anywhere to skip
+                                </p>
+                            </motion.div>
                         </div>
                     </motion.div>
                 )}
