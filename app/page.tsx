@@ -3,6 +3,7 @@
 import React from "react";
 import { motion } from "motion/react";
 import Image from "next/image";
+import Link from "next/link";
 
 import { Globe } from "@/src/registry/magicui/globe";
 import { AuroraBackground } from "../src/components/ui/aurora-background";
@@ -12,30 +13,34 @@ import { Linkedin, Twitter, Github, Mail, Youtube } from "lucide-react";
 export default function ProductPage() {
   return (
     <main className="relative w-full overflow-x-hidden">
-      <div className="absolute top-3 md:top-5 left-0 z-50 flex items-center gap-0 pointer-events-auto">
-        <Image
-          src="/logo2.png"
-          alt="JEFFBEN Corporate Branding"
-          width={600}
-          height={240}
-          className="h-24 md:h-48 w-auto object-contain mix-blend-multiply transition-transform hover:scale-105 duration-300"
-        />
+      <div className="absolute top-3 md:top-5 left-0 z-50 flex items-center gap-0 pointer-events-auto cursor-pointer">
+        <Link href="/live-map">
+          <Image
+            src="/logo2.png"
+            alt="JEFFBEN Corporate Branding"
+            width={600}
+            height={240}
+            className="h-24 md:h-48 w-auto object-contain mix-blend-multiply transition-transform hover:scale-105 duration-300"
+          />
+        </Link>
       </div>
 
-      <div className="absolute top-0 right-0 z-50 pointer-events-auto">
+      <div className="absolute top-0 right-0 z-50 pointer-events-auto cursor-pointer flex">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           whileInView={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2, duration: 0.8 }}
           viewport={{ once: true }}
         >
-          <Image
-            src="/hero-logo.png"
-            alt="JEFFBEN Strategic Emblem"
-            width={800}
-            height={800}
-            className="h-24 md:h-48 w-auto object-contain mix-blend-multiply drop-shadow-2xl"
-          />
+          <Link href="/live-map">
+            <Image
+              src="/hero-logo.png"
+              alt="JEFFBEN Strategic Emblem"
+              width={800}
+              height={800}
+              className="h-24 md:h-48 w-auto object-contain mix-blend-multiply drop-shadow-2xl transition-transform hover:scale-105 duration-300"
+            />
+          </Link>
         </motion.div>
       </div>
 
@@ -101,22 +106,6 @@ export default function ProductPage() {
                 >
                   Explore Solutions
                 </motion.button>
-                <motion.a
-                  href="/live-map"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="rounded-full bg-orange-600 px-10 py-4 text-white text-lg font-medium transition-shadow hover:shadow-2xl cursor-pointer flex items-center gap-2"
-                >
-                  Show Live Location
-                </motion.a>
-                <motion.a
-                  href="/live-map#booking"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="rounded-full bg-blue-600 px-10 py-4 text-white text-lg font-medium transition-shadow hover:shadow-2xl cursor-pointer flex items-center gap-2"
-                >
-                  Book Your Bus
-                </motion.a>
               </div>
             </div>
           </motion.div>

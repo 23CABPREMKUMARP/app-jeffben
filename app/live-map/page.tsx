@@ -284,60 +284,63 @@ export default function LiveMapBookingPage() {
   return (
     <main className="h-screen w-full flex flex-col bg-zinc-50 overflow-hidden font-sans text-zinc-900">
       {/* Premium Header */}
-      <header className="h-28 w-full bg-white/80 backdrop-blur-2xl border-b border-zinc-100 flex items-center justify-between px-16 z-[2000]">
-        <div className="flex items-center gap-8">
-          <Link href="/" className="hover:scale-110 transition-transform">
-            <Image src="/logo2.png" alt="Logo" width={180} height={70} className="object-contain" />
+      <header className="h-20 md:h-28 w-full bg-white/80 backdrop-blur-2xl border-b border-zinc-100 flex items-center justify-between px-4 sm:px-8 md:px-16 z-[2000]">
+        <div className="flex items-center gap-4 md:gap-8">
+          <Link href="/" className="hover:scale-105 md:hover:scale-110 transition-transform">
+            <Image src="/logo2.png" alt="Logo" width={140} height={40} className="object-contain w-[100px] md:w-[180px]" />
           </Link>
-          <div className="h-8 w-px bg-zinc-100 mx-4" />
-          <div>
-             <h1 className="text-2xl font-black text-zinc-900 tracking-tight">Bus Matrix v2.0</h1>
-             <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest leading-none mt-1">Live Tracking Enabled</p>
+          <div className="h-6 md:h-8 w-px bg-zinc-200 mx-2 md:mx-4" />
+          <div className="hidden sm:block">
+             <h1 className="text-lg md:text-2xl font-black text-zinc-900 tracking-tight">Bus Matrix v2.0</h1>
+             <p className="text-[8px] md:text-[10px] font-black text-blue-600 uppercase tracking-widest leading-none mt-1">Live Tracking Enabled</p>
           </div>
         </div>
         
-        <div className="flex items-center gap-8">
-          <Link href="/my-bookings" className="group flex items-center gap-4 text-xs font-black uppercase tracking-widest text-zinc-400 hover:text-blue-600 transition-all">
-            <div className="w-12 h-12 bg-zinc-50 rounded-2xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all shadow-xl group-hover:shadow-blue-600/20">
-              <Ticket size={24} />
+        <div className="flex items-center gap-4 md:gap-8">
+          <Link href="/my-bookings" className="group flex items-center gap-3 md:gap-4 text-[10px] md:text-xs font-black uppercase tracking-widest text-zinc-400 hover:text-blue-600 transition-all">
+            <div className="w-10 h-10 md:w-12 md:h-12 bg-zinc-50 rounded-xl md:rounded-2xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all shadow-md md:shadow-xl group-hover:shadow-blue-600/20">
+              <Ticket size={20} className="md:w-6 md:h-6 w-5 h-5" />
             </div>
-            My Journeys
+            <span className="hidden md:block">My Journeys</span>
           </Link>
-          <div className="w-16 h-16 rounded-3xl bg-white flex items-center justify-center border-4 border-zinc-50 shadow-2xl cursor-pointer hover:border-blue-600/20 transition-all group overflow-hidden relative">
+          <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl md:rounded-3xl bg-white flex items-center justify-center border-[3px] md:border-4 border-zinc-50 shadow-xl md:shadow-2xl cursor-pointer hover:border-blue-600/20 transition-all group overflow-hidden relative">
             <div className="absolute inset-0 bg-blue-600/5 translate-y-20 group-hover:translate-y-0 transition-transform" />
-            <User size={32} className="text-zinc-400 group-hover:text-blue-600 relative z-10 transition-colors" />
+            <User size={24} className="md:w-8 md:h-8 w-6 h-6 text-zinc-400 group-hover:text-blue-600 relative z-10 transition-colors" />
           </div>
         </div>
       </header>
 
-      <div className="flex-1 relative flex p-8 gap-8">
+      <div className="flex-1 relative flex flex-col md:flex-row p-0 md:p-8 gap-0 md:gap-8 overflow-hidden md:overflow-visible">
         {/* Map Container - Premium Floating Border */}
-        <div className="flex-1 relative overflow-hidden rounded-[56px] border-[12px] border-white/60 bg-white/40 backdrop-blur-md shadow-[0_60px_120px_-20px_rgba(59,130,246,0.15)] group drop-shadow-2xl">
+        <div className="flex-1 relative overflow-hidden rounded-t-[32px] md:rounded-[56px] border-t-8 border-x-0 md:border-x-[12px] md:border-t-[12px] border-[12px] border-white/60 bg-white/40 backdrop-blur-md shadow-[0_-20px_40px_rgba(0,0,0,0.05)] md:shadow-[0_60px_120px_-20px_rgba(59,130,246,0.15)] group drop-shadow-2xl">
           
           {/* Top HUD UI Overlay */}
-          <div className="absolute top-8 left-8 right-8 z-[100] flex justify-between gap-4 pointer-events-none">
-             <div className="flex gap-4 pointer-events-auto">
-               <div className="flex items-center bg-white/90 backdrop-blur-2xl border border-white/50 rounded-3xl px-6 py-4 shadow-[0_20px_60px_rgba(0,0,0,0.05)] transition-all focus-within:border-blue-400">
-                 <Search size={20} className="text-zinc-400 mr-4" />
-                 <input type="text" placeholder="Search vectors..." className="bg-transparent border-none text-zinc-900 outline-none w-64 placeholder-zinc-400 font-extrabold" />
+          <div className="absolute top-4 md:top-8 left-4 md:left-8 right-4 md:right-8 z-[100] flex flex-col md:flex-row justify-between gap-3 md:gap-4 pointer-events-none">
+             
+             {/* Search & Routing Pickers */}
+             <div className="flex gap-2 md:gap-4 pointer-events-auto w-full md:w-auto overflow-x-auto no-scrollbar pb-1 md:pb-0 hide-scrollbar-mobile">
+               <div className="flex items-center bg-white/90 backdrop-blur-2xl border border-white/50 rounded-2xl md:rounded-3xl px-3 py-2 md:px-6 md:py-4 shadow-sm flex-1 md:flex-none min-w-[140px] md:min-w-[auto] transition-all focus-within:border-blue-400">
+                 <Search size={16} className="text-zinc-400 mr-2 md:mr-4 shrink-0 md:w-5 md:h-5" />
+                 <input type="text" placeholder="Search..." className="bg-transparent border-none text-zinc-900 outline-none w-full md:w-64 placeholder-zinc-400 font-extrabold text-xs md:text-base" />
                </div>
                
-               <select className="bg-white/90 backdrop-blur-2xl border border-white/50 text-zinc-900 rounded-3xl px-6 py-4 outline-none font-extrabold shadow-[0_20px_60px_rgba(0,0,0,0.05)] appearance-none pr-12 cursor-pointer hover:border-blue-400 transition-all">
+               <select className="bg-white/90 backdrop-blur-2xl border border-white/50 text-zinc-900 rounded-2xl md:rounded-3xl px-3 md:px-6 py-2 md:py-4 outline-none font-extrabold shadow-sm appearance-none pr-8 md:pr-12 cursor-pointer hover:border-blue-400 transition-all text-xs md:text-base flex-1 md:flex-none min-w-[140px] md:min-w-[auto]">
                   <option>All Active Routes</option>
-                  <option>Gandhipuram Express Matrix</option>
-                  <option>Avinashi IT Corridor</option>
+                  <option>Avinashi Arterial Line</option>
+                  <option>Mettupalayam Strip</option>
                </select>
              </div>
 
-             <div className="bg-white/90 backdrop-blur-2xl border border-white/50 rounded-3xl p-3 flex gap-2 pointer-events-auto shadow-[0_20px_60px_rgba(0,0,0,0.05)]">
-                <button onClick={() => setLayers(l => ({...l, showRoutes: !l.showRoutes}))} className={`px-4 py-2 rounded-2xl flex items-center gap-2 font-bold text-xs transition-all ${layers.showRoutes ? "bg-blue-600 text-white" : "bg-black/5 text-zinc-600 hover:text-zinc-900"}`}>
-                   <Route size={16} /> Paths
+             {/* Map Rendering Layer Toggles */}
+             <div className="bg-white/90 backdrop-blur-2xl border border-white/50 rounded-2xl md:rounded-3xl p-1.5 md:p-3 flex gap-1 md:gap-2 pointer-events-auto shadow-sm overflow-x-auto no-scrollbar self-start md:self-auto max-w-full">
+                <button onClick={() => setLayers(l => ({...l, showRoutes: !l.showRoutes}))} className={`px-3 md:px-4 py-1.5 md:py-2 rounded-xl md:rounded-2xl flex items-center gap-1.5 md:gap-2 font-bold text-[10px] md:text-xs transition-all min-w-max ${layers.showRoutes ? "bg-blue-600 text-white" : "bg-black/5 text-zinc-600 hover:text-zinc-900"}`}>
+                   <Route size={14} className="md:w-4 md:h-4" /> Paths
                 </button>
-                <button onClick={() => setLayers(l => ({...l, showBuses: !l.showBuses}))} className={`px-4 py-2 rounded-2xl flex items-center gap-2 font-bold text-xs transition-all ${layers.showBuses ? "bg-amber-500 text-white" : "bg-black/5 text-zinc-600 hover:text-zinc-900"}`}>
-                   <Bus size={16} /> Fleet
+                <button onClick={() => setLayers(l => ({...l, showBuses: !l.showBuses}))} className={`px-3 md:px-4 py-1.5 md:py-2 rounded-xl md:rounded-2xl flex items-center gap-1.5 md:gap-2 font-bold text-[10px] md:text-xs transition-all min-w-max ${layers.showBuses ? "bg-amber-500 text-white" : "bg-black/5 text-zinc-600 hover:text-zinc-900"}`}>
+                   <Bus size={14} className="md:w-4 md:h-4" /> Fleet
                 </button>
-                <button onClick={() => setLayers(l => ({...l, showStops: !l.showStops}))} className={`px-4 py-2 rounded-2xl flex items-center gap-2 font-bold text-xs transition-all ${layers.showStops ? "bg-emerald-500 text-white" : "bg-black/5 text-zinc-600 hover:text-zinc-900"}`}>
-                   <MapPin size={16} /> Hubs
+                <button onClick={() => setLayers(l => ({...l, showStops: !l.showStops}))} className={`px-3 md:px-4 py-1.5 md:py-2 rounded-xl md:rounded-2xl flex items-center gap-1.5 md:gap-2 font-bold text-[10px] md:text-xs transition-all min-w-max ${layers.showStops ? "bg-emerald-500 text-white" : "bg-black/5 text-zinc-600 hover:text-zinc-900"}`}>
+                   <MapPin size={14} className="md:w-4 md:h-4" /> Hubs
                 </button>
              </div>
           </div>
@@ -358,7 +361,7 @@ export default function LiveMapBookingPage() {
           />
 
           {/* Bottom HUD Legend */}
-          <div className="absolute bottom-8 left-8 z-[100] bg-white/90 backdrop-blur-2xl border border-white/50 rounded-[32px] p-6 shadow-[0_30px_60px_rgba(0,0,0,0.08)] pointer-events-auto flex flex-col gap-5">
+          <div className="hidden md:flex absolute bottom-8 left-8 z-[100] bg-white/90 backdrop-blur-2xl border border-white/50 rounded-[32px] p-6 shadow-[0_30px_60px_rgba(0,0,0,0.08)] pointer-events-auto flex-col gap-5">
              <h4 className="text-blue-600 font-extrabold text-[10px] uppercase tracking-[0.3em]">Map Intelligence</h4>
              <div className="space-y-4">
                  <div className="flex items-center gap-5">
@@ -385,19 +388,19 @@ export default function LiveMapBookingPage() {
         <AnimatePresence>
           {isBooking && selectedBus && (
             <motion.div
-              initial={{ x: "120%", opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: "120%", opacity: 0 }}
+              initial={{ y: "100%", opacity: 0, scale: 0.95 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: "100%", opacity: 0, scale: 0.95 }}
               transition={{ type: "spring", damping: 30, stiffness: 200 }}
-              className="absolute top-10 right-10 bottom-10 w-[500px] bg-white/90 backdrop-blur-3xl rounded-[64px] shadow-[0_60px_150px_rgba(0,0,0,0.2)] z-[1001] flex flex-col overflow-hidden border-4 border-white"
+              className="absolute bottom-0 left-0 right-0 h-[70vh] md:h-auto md:top-10 md:bottom-10 md:right-10 md:left-auto md:w-[500px] bg-white/95 backdrop-blur-3xl rounded-t-[40px] md:rounded-[64px] shadow-[0_-20px_80px_rgba(0,0,0,0.15)] md:shadow-[0_60px_150px_rgba(0,0,0,0.2)] z-[1001] flex flex-col overflow-hidden border-t-[8px] md:border-4 border-white/80 md:border-white pb-6 md:pb-0"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 via-transparent to-transparent pointer-events-none" />
 
               {/* Panel Header */}
-              <div className="p-12 flex items-center justify-between border-b border-zinc-50">
+              <div className="p-8 md:p-12 flex items-center justify-between border-b border-zinc-100">
                 <div className="space-y-1">
                    <div className="flex items-center gap-3">
-                       <span className={`text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full ${
+                       <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-widest px-3 md:px-4 py-1 md:py-2 rounded-full ${
                           selectedBus.status === "Running" ? "bg-blue-100 text-blue-600" : "bg-amber-100 text-amber-600"
                        }`}>• {selectedBus.status}</span>
                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Active Fleet</span>
@@ -633,11 +636,11 @@ export default function LiveMapBookingPage() {
                     <button 
                       onClick={confirmBooking} 
                       disabled={!passengerDetails.name || !passengerDetails.phone}
-                      className="w-full h-28 bg-zinc-900 text-white rounded-[40px] font-black text-3xl tracking-tighter hover:bg-blue-600 disabled:opacity-30 transition-all shadow-2xl flex items-center justify-center gap-6 uppercase"
+                      className="w-full h-20 md:h-28 bg-zinc-900 text-white rounded-[32px] md:rounded-[40px] font-black text-xl md:text-3xl tracking-tighter hover:bg-blue-600 disabled:opacity-30 transition-all shadow-2xl flex items-center justify-center gap-4 md:gap-6 uppercase"
                     >
-                      {loading ? <div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin" /> : <>Finalize Booking <CheckCircle size={36} /></>}
+                      {loading ? <div className="w-8 h-8 md:w-10 md:h-10 border-4 border-white border-t-transparent rounded-full animate-spin" /> : <>Finalize Booking <CheckCircle size={28} className="md:w-9 md:h-9 w-7 h-7" /></>}
                     </button>
-                    <button onClick={() => setStep(2)} className="w-full text-zinc-400 font-black uppercase tracking-[0.2em] text-[10px] hover:text-zinc-600 transition-colors">Change Seating Arrangement</button>
+                    <button onClick={() => setStep(2)} className="w-full text-zinc-400 font-black uppercase tracking-[0.2em] text-[10px] hover:text-zinc-600 transition-colors pb-8 md:pb-0">Change Seating Arrangement</button>
                   </motion.div>
                 )}
 

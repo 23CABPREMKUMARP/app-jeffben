@@ -257,10 +257,16 @@ export default function LiveBusMap({ onBusClick, buses, selectedBusId, layers }:
              e.stopPropagation();
              onBusClick(bus);
              
-             // Cinematic Auto-Pan: Offset the viewport dynamically to reveal the bus right next to the UI Booking panel!
+             // Cinematic Auto-Pan adapted for mobile aspect ratios perfectly!
+             const isMobile = window.innerWidth < 768;
              map.flyTo({
                 center: [bus.location.lng, bus.location.lat],
-                padding: { right: bus.status.includes("Boarding") ? 500 : 0, top: 0, bottom: 0, left: 0 },
+                padding: { 
+                   right: bus.status.includes("Boarding") && !isMobile ? 450 : 0, 
+                   bottom: bus.status.includes("Boarding") && isMobile ? (window.innerHeight * 0.4) : 0,
+                   top: 0, 
+                   left: 0 
+                },
                 duration: 1200,
                 essential: true
              });
