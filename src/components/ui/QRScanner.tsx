@@ -15,34 +15,66 @@ const QRScanner: React.FC<QRScannerProps> = ({ onScan, onClose }) => {
   const scannerRef = useRef<Html5Qrcode | null>(null);
 
   useEffect(() => {
-    // Check if camera permission is available
-    if (typeof window !== "undefined") {
-      const html5QrCode = new Html5Qrcode("reader");
-      scannerRef.current = html5QrCode;
+    let html5QrCode: Html5Qrcode | null = null;
+    let isInitialized = false;
 
-      const config = { fps: 25, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 };
+    const startScanner = async () => {
+      if (isInitialized) return;
+      
+      try {
+        html5QrCode = new Html5Qrcode("reader");
+        scannerRef.current = html5QrCode;
 
-      html5QrCode.start(
-        { facingMode: "environment" },
-        config,
-        (decodedText) => {
-          onScan(decodedText);
-          html5QrCode.stop();
-        },
-        (errorMessage) => {
-          // console.log("Scanning...", errorMessage);
+        // Balanced optimization: 15 FPS + 1sec delay prevents mobile camera crashes and overheating
+        const config = { 
+          fps: 15, 
+          qrbox: { width: 250, height: 250 }, 
+          aspectRatio: 1.0,
+          disableFlip: false 
+        };
+
+        await html5QrCode.start(
+          { facingMode: "environment" },
+          config,
+          (decodedText) => {
+            if (isInitialized) {
+               isInitialized = false;
+               onScan(decodedText);
+               if (html5QrCode?.isScanning) {
+                 html5QrCode.stop().catch(() => {});
+               }
+            }
+          },
+          () => {} 
+        );
+        isInitialized = true;
+      } catch (err: any) {
+        if (err?.name === "NotAllowedError" || err?.toString().includes("Permission denied")) {
+          setError("CAMERA PERMISSION DENIED: Please enable camera access in your browser settings.");
+        } else {
+          setError("HARDWARE ERROR: Camera stream failed to stabilize. Restarting engine...");
+          // Cleanly try one re-initialization after 2s if it's a hardware crash
+          setTimeout(() => { if (!isInitialized) startScanner(); }, 2000);
         }
-      ).catch((err) => {
-        setError("Camera access denied or device has no camera.");
         console.error("Camera error:", err);
-      });
+      }
+    };
 
-      return () => {
-        if (html5QrCode.isScanning) {
-          html5QrCode.stop().catch(console.error);
-        }
-      };
-    }
+    startScanner();
+
+    return () => {
+      isInitialized = false;
+      if (html5QrCode) {
+        const cleanup = async () => {
+          try {
+            if (html5QrCode?.isScanning) {
+              await html5QrCode.stop();
+            }
+          } catch (e) {}
+        };
+        cleanup();
+      }
+    };
   }, [onScan]);
 
   return (
@@ -117,7 +149,7 @@ const QRScanner: React.FC<QRScannerProps> = ({ onScan, onClose }) => {
           </div>
           
           <div className="pb-2 text-center">
-             <p className="text-[8px] font-bold text-zinc-700 uppercase tracking-widest leading-none">Neural-ID v2.1 | JBN-CORP</p>
+             <p className="text-[8px] font-bold text-zinc-700 uppercase tracking-widest leading-none">Neural-ID v2.3 | JBN-STABLE</p>
           </div>
         </div>
       </motion.div>

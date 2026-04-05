@@ -535,6 +535,7 @@ function LiveMapContent() {
                      sim.segmentIndex = 0;
                      bus.routeId.path.reverse();
                      if (bus.routeId.stops) bus.routeId.stops.reverse();
+                     sim.currentRotation = (sim.currentRotation + 180) % 360; // FLIP 180 AT TERMINAL
                      sim.status = "Boarding";
                      sim.stopWaitLeft = 8000;
                      sim.progress = 0;
@@ -604,9 +605,9 @@ function LiveMapContent() {
                    <Image 
                      src="/logo2.png" 
                      alt="Jeffben" 
-                     width={200} 
-                     height={200} 
-                     className="w-24 h-24 md:w-40 md:h-40 object-contain hover:scale-105 transition-transform duration-300 drop-shadow-xl"
+                     width={160} 
+                     height={160} 
+                     className="w-16 h-16 md:w-28 md:h-28 object-contain hover:scale-105 transition-transform duration-300 drop-shadow-lg"
                    />
                 </Link>
              </div>
@@ -653,7 +654,16 @@ function LiveMapContent() {
                            >
                               <div className="px-6 py-4 border-b border-zinc-50 bg-zinc-50/50 flex items-center justify-between">
                                  <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest leading-none">Intelligence Match ({searchResults.length} Fleet Found)</p>
-                                 <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
+                                 <div className="flex items-center gap-3">
+                                   <span className="w-1.5 h-1.5 bg-primary rounded-full" />
+                                   <button 
+                                      onClick={() => setSearchQuery("")}
+                                      className="p-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-500 rounded-full transition-all active:scale-90"
+                                      title="Close Results"
+                                   >
+                                      <X size={14} />
+                                   </button>
+                                 </div>
                               </div>
                               {searchResults.map((bus) => (
                                  <div 
