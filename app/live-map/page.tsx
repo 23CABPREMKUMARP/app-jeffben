@@ -188,10 +188,10 @@ const LiveBusMap = dynamic(() => import("@/src/components/map/LiveBusMap"), {
 
 const MapLoadingSkeleton = React.memo(() => (
   <div className="flex items-center justify-center h-full w-full bg-white rounded-[56px] overflow-hidden border-8 border-zinc-50 shadow-2xl relative">
-     <div className="absolute inset-0 bg-gradient-to-tr from-blue-600/5 via-transparent to-amber-600/5 backdrop-blur-3xl animate-pulse" />
+     <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 via-transparent to-amber-600/5 backdrop-blur-3xl animate-pulse" />
      <div className="relative z-10 flex flex-col items-center gap-16">
-        <div className="w-32 h-32 border-[6px] border-blue-600/10 border-t-blue-600 rounded-full animate-spin p-8 flex items-center justify-center">
-           <div className="w-full h-full border-2 border-blue-500 rounded-full animate-pulse" />
+        <div className="w-32 h-32 border-[6px] border-primary/10 border-t-primary rounded-full animate-spin p-8 flex items-center justify-center">
+           <div className="w-full h-full border-2 border-orange-500 rounded-full animate-pulse" />
         </div>
         <div className="space-y-4 text-center">
            <p className="text-zinc-900 font-black italic tracking-tight text-2xl">Initializing Live Track</p>
@@ -294,17 +294,8 @@ function LiveMapContent() {
         setUserLocation(newLoc);
         setLocationError(null);
       };
-      
+
       const error = (err: GeolocationPositionError) => {
-        let msg = "Location lookup failed.";
-        if (err.code === 1) msg = "Permission denied. Check browser settings.";
-        else if (err.code === 2) msg = "Location unavailable. Ensure GPS is on.";
-        else if (err.code === 3) msg = "Request timed out. Try again.";
-        
-        console.warn(`Geolocation Error: ${msg}`, err);
-        setLocationError("Simulating GPS...");
-        
-        // AUTO-MOCK FALLBACK FOR DEVELOPMENT TESTING INSTEAD OF QUITTING
         // Set fallback to user's real-world location (Palladam, TN) since localhost testing blocks live GPS
         setTimeout(() => {
            setUserLocation({ lat: 11.0000, lng: 77.2880 });
@@ -337,16 +328,24 @@ function LiveMapContent() {
   const handleQRScan = (decodedText: string) => {
     setIsScanning(false);
     let busId = decodedText;
-    if (decodedText.includes("busId=")) {
+    
+    // Support both raw ID and URL formats
+    if (decodedText.startsWith("{")) {
+       try {
+         const data = JSON.parse(decodedText);
+         busId = data.busId || data.id;
+       } catch (e) {}
+    } else if (decodedText.includes("busId=")) {
       busId = decodedText.split("busId=")[1].split("&")[0];
     }
+    
     const foundBus = buses.find(b => b._id === busId || b.busNumber === busId);
     if (foundBus) {
       setSelectedBus(foundBus);
       setIsBooking(true);
-      setStep(1);
+      setStep(1); // Open Boarding Details
     } else {
-      alert("Bus not found in the fleet grid.");
+      alert("Electronic Signature mismatch. Bus not found in fleet grid.");
     }
   };
 
@@ -615,8 +614,8 @@ function LiveMapContent() {
              {/* Center: Search Bar */}
              <div className="flex-1 max-w-sm md:max-w-md mx-2 md:mx-6 pointer-events-auto">
                  <div className="flex flex-col relative w-full">
-                     <div className="flex items-center bg-white/95 backdrop-blur-md border border-white text-zinc-900 rounded-[24px] px-4 md:px-6 py-2.5 md:py-3.5 shadow-2xl transition-all focus-within:ring-2 ring-blue-500/20 group w-full">
-                       <Search size={18} className="text-zinc-400 mr-2 md:mr-3 group-focus-within:text-blue-500 transition-colors" />
+                     <div className="flex items-center bg-white/95 backdrop-blur-md border border-white text-zinc-900 rounded-[24px] px-4 md:px-6 py-2.5 md:py-3.5 shadow-2xl transition-all focus-within:ring-2 ring-orange-500/20 group w-full">
+                       <Search size={18} className="text-zinc-400 mr-2 md:mr-3 group-focus-within:text-orange-500 transition-colors" />
                        <input 
                          type="text" 
                          value={searchQuery}
@@ -632,7 +631,7 @@ function LiveMapContent() {
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
-                            className="absolute top-[110%] left-0 w-full bg-white/95 backdrop-blur-xl rounded-[28px] shadow-2xl border border-zinc-100 overflow-hidden z-[1000] flex flex-col max-h-[300px] overflow-y-auto no-scrollbar pointer-events-auto"
+                            className="absolute top-[110%] left-0 w-full bg-white/95 backdrop-blur-xl rounded-[28px] shadow-2xl border border-zinc-100 overflow-hidden z-[1000] flex flex-col max-h-[400px] overflow-y-auto no-scrollbar pointer-events-auto"
                           >
                              {searchResults.map((bus) => (
                                 <div 
@@ -644,13 +643,13 @@ function LiveMapContent() {
                                       setIsBooking(true);
                                       setCenterOn({...bus.location});
                                    }}
-                                   className="p-4 hover:bg-zinc-50 border-b border-zinc-50 cursor-pointer flex items-center justify-between transition-colors group"
+                                   className="p-5 hover:bg-orange-50 border-b border-zinc-100 cursor-pointer flex items-center justify-between transition-all group active:bg-orange-100"
                                 >
                                    <div>
-                                      <p className="text-sm font-black text-zinc-900 group-hover:text-blue-600 transition-colors">{bus.busNumber}</p>
-                                      <p className="text-[10px] font-bold text-zinc-500">{bus.routeId?.routeName}</p>
+                                      <p className="text-base font-black text-zinc-900 group-hover:text-primary transition-colors">{bus.busNumber}</p>
+                                      <p className="text-[12px] font-bold text-zinc-500 uppercase tracking-tighter">{bus.routeId?.routeName}</p>
                                    </div>
-                                   <span className={`text-[8px] font-black uppercase px-3 py-1.5 rounded-full tracking-widest ${bus.status === 'Running' ? 'bg-blue-100 text-blue-600' : 'bg-amber-100 text-amber-600'}`}>{bus.status}</span>
+                                   <span className={`text-[10px] font-black uppercase px-4 py-2 rounded-full tracking-wider shadow-sm transition-transform group-hover:scale-105 ${bus.status === 'Running' ? 'bg-primary text-white' : 'bg-amber-100 text-[#EA580C]'}`}>{bus.status}</span>
                                 </div>
                              ))}
                           </motion.div>
@@ -705,7 +704,7 @@ function LiveMapContent() {
                    if(userLocation) setCenterOn({...userLocation} as any); 
                    else toggleLiveLocation(); 
                  }} 
-                 className="w-10 h-10 md:w-12 md:h-12 bg-white hover:bg-blue-600 hover:text-white text-blue-600 rounded-xl md:rounded-3xl flex items-center justify-center transition-all group shadow-sm border border-zinc-100/50"
+                 className="w-10 h-10 md:w-12 md:h-12 bg-white hover:bg-primary hover:text-white text-primary rounded-xl md:rounded-3xl flex items-center justify-center transition-all group shadow-sm border border-zinc-100/50"
                  title="Locate Me"
                >
                  <Navigation size={18} className="group-active:scale-90 transition-transform" />
@@ -722,7 +721,7 @@ function LiveMapContent() {
                         setHideNearestCard(true);
                         setCenterOn({ lat: 11.0168, lng: 76.9558, zoom: 14, pitch: 60, bearing: -15 } as any);
                      }} 
-                     className="w-10 h-10 md:w-12 md:h-12 bg-white hover:bg-rose-500 hover:text-white text-rose-500 rounded-xl md:rounded-3xl flex items-center justify-center transition-all group shadow-sm border border-zinc-100/50"
+                     className="w-10 h-10 md:w-12 md:h-12 bg-white hover:bg-primary hover:text-white text-primary rounded-xl md:rounded-3xl flex items-center justify-center transition-all group shadow-sm border border-zinc-100/50"
                      title="Reset Map"
                    >
                      <RefreshCw size={18} className="group-active:-rotate-180 transition-transform duration-500" />
@@ -805,7 +804,7 @@ function LiveMapContent() {
                            // 4. Cinematic Reset to City Overview
                            setCenterOn({ lat: 11.0168, lng: 76.9558, zoom: 14, pitch: 60, bearing: -15 } as any);
                         }}
-                        className="flex flex-col items-center justify-center min-w-[48px] sm:min-w-[56px] md:min-w-[80px] h-12 md:h-16 rounded-2xl md:rounded-full transition-all bg-rose-500 text-white flex-shrink-0 shadow-lg shadow-rose-500/30 animate-in fade-in slide-in-from-right-4"
+                        className="flex flex-col items-center justify-center min-w-[48px] sm:min-w-[56px] md:min-w-[80px] h-12 md:h-16 rounded-2xl md:rounded-full transition-all bg-primary text-white flex-shrink-0 shadow-lg shadow-primary/30 animate-in fade-in slide-in-from-right-4"
                      >
                         <RefreshCw size={20} />
                         <span className="text-[8px] md:text-[9px] font-bold uppercase tracking-wider mt-1">Cancel</span>
@@ -849,7 +848,7 @@ function LiveMapContent() {
                      </button>
                      <button 
                        onClick={clearNavigation}
-                       className="px-8 h-14 bg-white text-blue-600 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-zinc-900 hover:text-white transition-all shadow-xl"
+                       className="px-8 h-14 bg-white text-primary rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-zinc-900 hover:text-white transition-all shadow-xl"
                      >
                        Finish
                      </button>
@@ -867,7 +866,7 @@ function LiveMapContent() {
                   </button>
 
                   <div className="flex flex-col gap-1 md:gap-2 pr-8 md:pr-0">
-                     <span className="text-[9px] md:text-[10px] font-black uppercase text-blue-500 tracking-[0.4em] truncate w-full">Nearest: {(nearestBus as any).busNumber}</span>
+                     <span className="text-[9px] md:text-[10px] font-black uppercase text-orange-500 tracking-[0.4em] truncate w-full">Nearest: {(nearestBus as any).busNumber}</span>
                      
                      <div className="flex flex-row md:flex-col items-baseline gap-4 md:gap-0">
                         <div className="flex items-baseline gap-1">
@@ -875,7 +874,7 @@ function LiveMapContent() {
                            <span className="text-xs md:text-sm font-black text-zinc-600 uppercase">KM</span>
                         </div>
                         <div className="flex items-baseline gap-1 mt-0 md:mt-1">
-                           <span className="text-xl md:text-2xl font-black italic text-blue-400 tracking-tighter">{Math.round(getDistance(userLocation.lat, userLocation.lng, (nearestBus as any).location.lat, (nearestBus as any).location.lng) * 2.5)}</span>
+                           <span className="text-xl md:text-2xl font-black italic text-primary tracking-tighter">{Math.round(getDistance(userLocation.lat, userLocation.lng, (nearestBus as any).location.lat, (nearestBus as any).location.lng) * 2.5)}</span>
                            <span className="text-[9px] md:text-[10px] font-black text-zinc-500 uppercase">Min ETA</span>
                         </div>
                      </div>
@@ -886,14 +885,14 @@ function LiveMapContent() {
                   <div className="flex w-full md:w-auto gap-3 md:gap-4 justify-between md:justify-start">
                      <button 
                        onClick={() => startNavigation(nearestBus)}
-                       className="flex-1 md:flex-none h-14 md:w-16 md:h-16 bg-white/10 border border-white/20 rounded-2xl md:rounded-full flex items-center justify-center text-white shadow-xl hover:bg-blue-600 hover:border-blue-500 transition-all active:scale-95 group/nav"
+                       className="flex-1 md:flex-none h-14 md:w-16 md:h-16 bg-white/10 border border-white/20 rounded-2xl md:rounded-full flex items-center justify-center text-white shadow-xl hover:bg-primary hover:border-orange-500 transition-all active:scale-95 group/nav"
                        title="Navigate to Bus"
                      >
                        <Navigation size={22} className="rotate-45 group-hover/nav:scale-110 transition-transform md:w-[28px] md:h-[28px]" />
                      </button>
                      <button 
                        onClick={() => { setSelectedBus(nearestBus); setIsBooking(true); setStep(0); }}
-                       className="flex-1 md:flex-none h-14 md:w-16 md:h-16 gap-2 bg-blue-600 rounded-2xl md:rounded-full flex items-center justify-center text-white shadow-xl shadow-blue-600/30 hover:bg-white hover:text-blue-600 transition-all active:scale-90 font-black text-xs uppercase tracking-widest"
+                       className="flex-1 md:flex-none h-14 md:w-16 md:h-16 gap-2 bg-primary rounded-2xl md:rounded-full flex items-center justify-center text-white shadow-xl shadow-primary/30 hover:bg-white hover:text-primary transition-all active:scale-90 font-black text-xs uppercase tracking-widest"
                        title="Book Ticket"
                       >
                         <span className="md:hidden">Select</span>
@@ -920,14 +919,14 @@ function LiveMapContent() {
               {/* Mobile Swipe Indicator */}
               <div className="md:hidden w-12 h-1.5 bg-zinc-200 rounded-full mx-auto mt-4 shrink-0" />
               
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 via-transparent to-transparent pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent pointer-events-none" />
 
               {/* Panel Header */}
               <div className="p-5 md:p-12 flex items-center justify-between border-b border-zinc-100 shrink-0">
                 <div className="space-y-1">
                    <div className="flex items-center gap-2 md:gap-3">
                        <span className={`text-[8px] md:text-[10px] font-black uppercase tracking-widest px-3 md:px-4 py-1 flex items-center md:py-2 rounded-full ${
-                          selectedBus.status === "Running" ? "bg-blue-100 text-blue-600" : "bg-amber-100 text-amber-600"
+                          selectedBus.status === "Running" ? "bg-orange-100 text-primary" : "bg-amber-100 text-amber-600"
                        }`}>• {selectedBus.status}</span>
                        <span className="hidden md:block text-[10px] font-black text-zinc-400 uppercase tracking-widest">Active Fleet</span>
                    </div>
@@ -936,10 +935,10 @@ function LiveMapContent() {
                 <div className="flex items-center gap-4">
                   <button 
                     onClick={() => setShowBusQR(true)}
-                    className="w-12 h-12 md:w-14 md:h-14 flex items-center justify-center bg-blue-50 hover:bg-blue-100 rounded-3xl transition-all border border-blue-100 group"
+                    className="w-12 h-12 md:w-14 md:h-14 flex items-center justify-center bg-orange-50 hover:bg-orange-100 rounded-3xl transition-all border border-orange-100 group"
                     title="View Bus QR"
                   >
-                    <QrCode size={24} className="text-blue-600 group-hover:scale-110 transition-transform" />
+                    <QrCode size={24} className="text-primary group-hover:scale-110 transition-transform" />
                   </button>
                   <button 
                     onClick={() => setIsBooking(false)}
@@ -958,7 +957,7 @@ function LiveMapContent() {
                     <div className="flex items-center justify-between p-5 md:p-8 bg-black/5 rounded-[24px] md:rounded-[40px] border border-black/5">
                       <div className="flex items-center gap-3 md:gap-4">
                         <div className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-xl md:rounded-2xl flex items-center justify-center shadow-sm">
-                          <Activity className={`${selectedBus.status === "Running" ? "text-blue-600 animate-pulse" : "text-amber-500"} w-5 h-5 md:w-6 md:h-6`} />
+                          <Activity className={`${selectedBus.status === "Running" ? "text-primary animate-pulse" : "text-amber-500"} w-5 h-5 md:w-6 md:h-6`} />
                         </div>
                         <div>
                           <p className="text-[8px] md:text-[10px] font-black text-zinc-400 uppercase tracking-widest leading-none">Status</p>
@@ -967,7 +966,7 @@ function LiveMapContent() {
                       </div>
                       <div className="text-right">
                         <p className="text-[8px] md:text-[10px] font-black text-zinc-400 uppercase tracking-widest leading-none">Speed</p>
-                        <p className="text-base md:text-xl font-black text-blue-600 mt-0.5 md:mt-1">{selectedBus.speed} <span className="text-[9px] md:text-xs font-bold text-zinc-400">km/h</span></p>
+                        <p className="text-base md:text-xl font-black text-primary mt-0.5 md:mt-1">{selectedBus.speed} <span className="text-[9px] md:text-xs font-bold text-zinc-400">km/h</span></p>
                       </div>
                     </div>
 
@@ -975,7 +974,7 @@ function LiveMapContent() {
                       <h3 className="text-[9px] md:text-xs font-black text-zinc-400 uppercase tracking-[0.4em]">Route Information</h3>
                       <div className="p-5 md:p-10 bg-white rounded-[24px] md:rounded-[48px] border border-zinc-100 shadow-[0_20px_60px_rgba(0,0,0,0.03)] space-y-4 md:space-y-8">
                         <div className="flex items-center gap-3 md:gap-6">
-                          <div className="w-10 h-10 md:w-14 md:h-14 bg-blue-50 rounded-xl md:rounded-2xl flex items-center justify-center text-blue-600 shadow-sm"><Route size={20} className="md:w-7 md:h-7" /></div>
+                          <div className="w-10 h-10 md:w-14 md:h-14 bg-orange-50 rounded-xl md:rounded-2xl flex items-center justify-center text-primary shadow-sm"><Route size={20} className="md:w-7 md:h-7" /></div>
                           <div>
                             <p className="text-[8px] md:text-[10px] font-black text-zinc-400 uppercase tracking-widest leading-none">Line Name</p>
                             <p className="text-sm md:text-2xl font-black text-zinc-900 mt-1 line-clamp-1">{selectedBus.routeId?.routeName}</p>
@@ -989,14 +988,14 @@ function LiveMapContent() {
                           </div>
                           <div>
                              <p className="text-[8px] md:text-[10px] font-black text-zinc-400 uppercase tracking-widest truncate">Next Arrival</p>
-                             <p className="text-sm md:text-lg font-black text-blue-600 mt-1 truncate">{selectedBus.nextStop || "N/A"}</p>
+                             <p className="text-sm md:text-lg font-black text-primary mt-1 truncate">{selectedBus.nextStop || "N/A"}</p>
                           </div>
                         </div>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
-                       <div className="p-5 md:p-10 bg-blue-600 rounded-[24px] md:rounded-[40px] text-white shadow-[0_20px_40px_rgba(59,130,246,0.2)] flex md:flex-col items-center md:items-start justify-between md:justify-start">
+                       <div className="p-5 md:p-10 bg-primary rounded-[24px] md:rounded-[40px] text-white shadow-[0_20px_40px_rgba(59,130,246,0.2)] flex md:flex-col items-center md:items-start justify-between md:justify-start">
                           <p className="text-[9px] md:text-[10px] font-black uppercase tracking-widest opacity-80 md:opacity-60 mb-0 md:mb-3">Available Space</p>
                           <div className="flex items-center gap-3 md:gap-4">
                             <span className="text-2xl md:text-5xl font-black">{selectedBus.availableSeats}</span>
@@ -1017,7 +1016,7 @@ function LiveMapContent() {
                      <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4 hide-scrollbar-mobile">
                           {selectedBus.routeId?.stops?.map((stop: any, idx: number) => (
                             <div key={stop._id} className={`shrink-0 p-6 rounded-3xl border-2 transition-all min-w-[160px] ${stop.stopName === selectedBus.currentStop ? "bg-amber-50 border-amber-500/30" : "bg-white border-zinc-100"}`}>
-                              <span className={`text-[8px] font-black uppercase tracking-widest ${stop.type === 'major' ? "text-blue-600" : "text-zinc-300"}`}>{stop.type === 'major' ? "Main Hub" : "Neighborhood"} 0{idx+1}</span>
+                              <span className={`text-[8px] font-black uppercase tracking-widest ${stop.type === 'major' ? "text-primary" : "text-zinc-300"}`}>{stop.type === 'major' ? "Main Hub" : "Neighborhood"} 0{idx+1}</span>
                               <p className={`text-sm font-black mt-2 ${stop.stopName === selectedBus.currentStop ? "text-amber-600" : "text-zinc-600"}`}>{stop.stopName}</p>
                             </div>
                           ))}
@@ -1026,14 +1025,14 @@ function LiveMapContent() {
 
                     {userLocation && (
                       <div className="space-y-6">
-                         <h3 className="text-xs font-black text-rose-500 uppercase tracking-[0.4em]">Proximity Intel</h3>
+                         <h3 className="text-xs font-black text-primary uppercase tracking-[0.4em]">Proximity Intel</h3>
                          <div className="grid grid-cols-2 gap-4">
                             <div className="p-8 bg-rose-50/30 rounded-[32px] border border-rose-100/50">
                                <p className="text-[9px] font-black text-rose-400 uppercase tracking-widest mb-1">Bus Distance</p>
                                <p className="text-3xl font-black text-zinc-900">{getDistance(userLocation.lat, userLocation.lng, selectedBus.location.lat, selectedBus.location.lng).toFixed(1)} <span className="text-xs">KM</span></p>
                             </div>
-                            <div className="p-8 bg-blue-50/30 rounded-[32px] border border-blue-100/50">
-                               <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-1">Arrival ETA</p>
+                            <div className="p-8 bg-orange-50/30 rounded-[32px] border border-orange-100/50">
+                               <p className="text-[9px] font-black text-primary uppercase tracking-widest mb-1">Arrival ETA</p>
                                <p className="text-3xl font-black text-zinc-900">{Math.round(getDistance(userLocation.lat, userLocation.lng, selectedBus.location.lat, selectedBus.location.lng) * 2.5)} <span className="text-xs">MIN</span></p>
                             </div>
                          </div>
@@ -1046,7 +1045,7 @@ function LiveMapContent() {
                             setIsBooking(false);
                             startNavigation(selectedBus);
                          }}
-                         className="w-full h-16 bg-blue-600/10 text-blue-600 rounded-[24px] font-black uppercase tracking-[0.2em] text-[10px] hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center gap-3 border border-blue-600/20"
+                         className="w-full h-16 bg-primary/10 text-primary rounded-[24px] font-black uppercase tracking-[0.2em] text-[10px] hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-3 border border-primary/20"
                        >
                          <Navigation size={16} className="rotate-45" /> Start Road Navigation
                        </button>
@@ -1055,12 +1054,12 @@ function LiveMapContent() {
                             onClick={() => { setIsBooking(false); }}
                             className="flex-1 h-20 bg-zinc-100 text-zinc-900 rounded-[32px] font-black uppercase tracking-widest hover:bg-zinc-200 transition-all flex items-center justify-center gap-4 border border-zinc-200"
                           >
-                             <Navigation size={20} className="text-blue-600" /> Track
+                             <Navigation size={20} className="text-primary" /> Track
                           </button>
                           <button 
                             onClick={() => setStep(1)} 
                             disabled={selectedBus.status.includes("Running")}
-                            className="flex-[1.5] h-20 bg-blue-600 text-white rounded-[32px] font-black text-xl tracking-tighter hover:bg-zinc-900 transition-all shadow-xl disabled:opacity-20 uppercase flex items-center justify-center gap-4"
+                            className="flex-[1.5] h-20 bg-primary text-white rounded-[32px] font-black text-xl tracking-tighter hover:bg-zinc-900 transition-all shadow-xl disabled:opacity-20 uppercase flex items-center justify-center gap-4"
                           >
                             {selectedBus.status.includes("Running") ? "On Route" : <><Zap size={20} /> Book</>}
                           </button>
@@ -1079,18 +1078,18 @@ function LiveMapContent() {
                         <div className="text-center flex-1">
                            <div className="text-[10px] font-black text-zinc-300 uppercase tracking-widest mb-2">Departing</div>
                            <div className="text-4xl font-black text-zinc-900">{selectedBus.departureTime}</div>
-                           <div className="text-xs font-black text-blue-600 mt-3 flex items-center justify-center gap-2">
+                           <div className="text-xs font-black text-primary mt-3 flex items-center justify-center gap-2">
                              <MapPin size={12} /> {selectedBus.routeId?.from}
                            </div>
                         </div>
                         <div className="flex flex-col items-center px-8">
-                           <div className="w-1 h-20 bg-gradient-to-b from-blue-600/30 to-blue-600 rounded-full" />
-                           <Navigation className="text-blue-600 my-[-10px] rotate-90" size={24} />
+                           <div className="w-1 h-20 bg-gradient-to-b from-primary/30 to-primary rounded-full" />
+                           <Navigation className="text-primary my-[-10px] rotate-90" size={24} />
                         </div>
                         <div className="text-center flex-1">
                            <div className="text-[10px] font-black text-zinc-300 uppercase tracking-widest mb-2">Arrival</div>
                            <div className="text-4xl font-black text-zinc-900">{selectedBus.arrivalTime}</div>
-                           <div className="text-xs font-black text-blue-600 mt-3 flex items-center justify-center gap-2 uppercase tracking-tighter">
+                           <div className="text-xs font-black text-primary mt-3 flex items-center justify-center gap-2 uppercase tracking-tighter">
                              <CheckCircle size={12} /> {selectedBus.routeId?.to}
                            </div>
                         </div>
@@ -1100,7 +1099,7 @@ function LiveMapContent() {
                     <div className="grid grid-cols-2 gap-8">
                        <div className="p-10 bg-white rounded-[40px] shadow-[0_20px_40px_rgba(0,0,0,0.03)] border border-zinc-50 transition-all hover:shadow-[0_40px_80px_-10px_rgba(59,130,246,0.1)] group">
                           <p className="text-[10px] text-zinc-400 font-black uppercase tracking-widest mb-3">Ticket Price</p>
-                          <p className="text-4xl font-black text-zinc-900 group-hover:text-blue-600 transition-colors">₹{selectedBus.fare}</p>
+                          <p className="text-4xl font-black text-zinc-900 group-hover:text-primary transition-colors">₹{selectedBus.fare}</p>
                        </div>
                        <div className="p-10 bg-white rounded-[40px] shadow-[0_20px_40px_rgba(0,0,0,0.03)] border border-zinc-50 transition-all hover:shadow-[0_40px_80px_-10px_rgba(59,130,246,0.1)] group text-right">
                           <p className="text-[10px] text-zinc-400 font-black uppercase tracking-widest mb-3">Available Seats</p>
@@ -1117,7 +1116,7 @@ function LiveMapContent() {
                              <select 
                                value={boardingPoint} 
                                onChange={(e) => setBoardingPoint(e.target.value)}
-                               className="w-full h-16 bg-zinc-50 border border-zinc-100 rounded-3xl px-6 font-bold text-zinc-900 outline-none focus:border-blue-600/30 transition-all"
+                               className="w-full h-16 bg-zinc-50 border border-zinc-100 rounded-3xl px-6 font-bold text-zinc-900 outline-none focus:border-primary/30 transition-all"
                              >
                                 <option value="">Select Boarding</option>
                                 {selectedBus.routeId?.stops?.filter((s:any) => s.type === 'major' ? layers.showMajorStops : layers.showSmallStops).map((stop: any) => (
@@ -1130,7 +1129,7 @@ function LiveMapContent() {
                              <select 
                                value={dropPoint} 
                                onChange={(e) => setDropPoint(e.target.value)}
-                               className="w-full h-16 bg-zinc-50 border border-zinc-100 rounded-3xl px-6 font-bold text-zinc-900 outline-none focus:border-blue-600/30 transition-all"
+                               className="w-full h-16 bg-zinc-50 border border-zinc-100 rounded-3xl px-6 font-bold text-zinc-900 outline-none focus:border-primary/30 transition-all"
                              >
                                 <option value="">Select Drop Point</option>
                                 {selectedBus.routeId?.stops?.filter((s:any) => s.type === 'major' ? layers.showMajorStops : layers.showSmallStops).map((stop: any) => (
@@ -1146,7 +1145,7 @@ function LiveMapContent() {
                        <div className="p-10 bg-zinc-50/50 rounded-[48px] border border-zinc-100 space-y-8 shadow-inner">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                               <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center shadow-sm"><Clock size={16} className="text-blue-600" /></div>
+                               <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center shadow-sm"><Clock size={16} className="text-primary" /></div>
                                <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Next Stop Sequence</span>
                             </div>
                             <span className="text-xs font-black text-zinc-900 uppercase">{selectedBus.nextStop}</span>
@@ -1164,7 +1163,7 @@ function LiveMapContent() {
                       <button 
                         onClick={() => setStep(2)}
                         disabled={!boardingPoint || !dropPoint}
-                        className="w-full bg-blue-600 text-white py-8 rounded-[40px] text-2xl font-black uppercase tracking-tighter hover:bg-zinc-900 transition-all shadow-[0_30px_60px_-10px_rgba(59,130,246,0.4)] disabled:opacity-30 active:scale-95 flex items-center justify-center gap-4"
+                        className="w-full bg-primary text-white py-8 rounded-[40px] text-2xl font-black uppercase tracking-tighter hover:bg-zinc-900 transition-all shadow-[0_30px_60px_-10px_rgba(59,130,246,0.4)] disabled:opacity-30 active:scale-95 flex items-center justify-center gap-4"
                       >
                         Select Passengers <ChevronRight size={28} />
                       </button>
@@ -1183,7 +1182,7 @@ function LiveMapContent() {
                        <div className="text-center space-y-2">
                           <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.3em]">Quantum Reserved Hub</p>
                           <h4 className="text-6xl md:text-8xl font-black text-zinc-900 tracking-tighter">{ticketQuantity}</h4>
-                          <p className="text-xs font-bold text-blue-600 uppercase tracking-widest">Active Tickets Selected</p>
+                          <p className="text-xs font-bold text-primary uppercase tracking-widest">Active Tickets Selected</p>
                        </div>
 
                        <div className="flex items-center gap-8 md:gap-12">
@@ -1195,24 +1194,24 @@ function LiveMapContent() {
                           </button>
                           <button 
                             onClick={() => setTicketQuantity(prev => Math.min(selectedBus?.availableSeats || 35, prev + 1))}
-                            className="w-16 h-16 md:w-20 md:h-20 bg-blue-600 rounded-3xl flex items-center justify-center text-3xl font-black text-white shadow-2xl shadow-blue-600/30 hover:bg-zinc-900 transition-all transform hover:scale-110 active:scale-90"
+                            className="w-16 h-16 md:w-20 md:h-20 bg-primary rounded-3xl flex items-center justify-center text-3xl font-black text-white shadow-2xl shadow-primary/30 hover:bg-zinc-900 transition-all transform hover:scale-110 active:scale-90"
                           >
                              +
                           </button>
                        </div>
                     </div>
                     
-                    <div className="p-8 bg-blue-50/50 rounded-[32px] md:rounded-[40px] border border-blue-100/50 flex items-center justify-between">
+                    <div className="p-8 bg-orange-50/50 rounded-[32px] md:rounded-[40px] border border-orange-100/50 flex items-center justify-between">
                        <div className="space-y-1">
-                          <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest leading-none">Capacity Status</p>
-                          <p className="text-sm font-black text-blue-600 uppercase italic">{(selectedBus?.availableSeats || 35) - ticketQuantity} Seats Remaining</p>
+                          <p className="text-[9px] font-black text-primary uppercase tracking-widest leading-none">Capacity Status</p>
+                          <p className="text-sm font-black text-primary uppercase italic">{(selectedBus?.availableSeats || 35) - ticketQuantity} Seats Remaining</p>
                        </div>
-                       <Info size={24} className="text-blue-400 opacity-50" />
+                       <Info size={24} className="text-primary opacity-50" />
                     </div>
 
                     <div className="flex gap-4 md:gap-8">
                       <button onClick={() => setStep(1)} className="flex-1 h-20 bg-white text-zinc-500 rounded-[32px] font-black uppercase tracking-widest border border-zinc-100 hover:bg-zinc-50 transition-all">Back</button>
-                      <button onClick={() => setStep(3)} className="flex-[2] h-20 bg-blue-600 text-white rounded-[32px] font-black text-xl tracking-tighter hover:bg-zinc-900 transition-all shadow-xl uppercase">Passenger Intel &rarr;</button>
+                      <button onClick={() => setStep(3)} className="flex-[2] h-20 bg-primary text-white rounded-[32px] font-black text-xl tracking-tighter hover:bg-zinc-900 transition-all shadow-xl uppercase">Passenger Intel &rarr;</button>
                     </div>
                   </motion.div>
                 )}
@@ -1224,45 +1223,45 @@ function LiveMapContent() {
                        <div className="space-y-3 px-4">
                           <label className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.4em] pl-2">Full Identity Name</label>
                           <div className="relative group">
-                            <User className="absolute left-8 top-1/2 -translate-y-1/2 text-zinc-300 group-focus-within:text-blue-600 transition-colors" size={24} />
+                            <User className="absolute left-8 top-1/2 -translate-y-1/2 text-zinc-300 group-focus-within:text-primary transition-colors" size={24} />
                             <input 
                               type="text" 
                               placeholder="Johnathan Doe" 
                               value={passengerDetails.name}
                               onChange={(e) => setPassengerDetails({...passengerDetails, name: e.target.value})}
-                              className="w-full h-20 bg-zinc-50 border-2 border-zinc-100 rounded-[40px] pl-20 pr-10 font-bold text-xl text-zinc-900 outline-none focus:border-blue-600/30 focus:bg-white transition-all shadow-inner" 
+                              className="w-full h-20 bg-zinc-50 border-2 border-zinc-100 rounded-[40px] pl-20 pr-10 font-bold text-xl text-zinc-900 outline-none focus:border-primary/30 focus:bg-white transition-all shadow-inner" 
                             />
                           </div>
                        </div>
                        <div className="space-y-3 px-4">
                           <label className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.4em] pl-2">Phone Vector</label>
                           <div className="relative group">
-                            <Phone className="absolute left-8 top-1/2 -translate-y-1/2 text-zinc-300 group-focus-within:text-blue-600 transition-colors" size={24} />
+                            <Phone className="absolute left-8 top-1/2 -translate-y-1/2 text-zinc-300 group-focus-within:text-primary transition-colors" size={24} />
                             <input 
                               type="tel" 
                               placeholder="+91 98765 43210" 
                               value={passengerDetails.phone}
                               onChange={(e) => setPassengerDetails({...passengerDetails, phone: e.target.value})}
-                              className="w-full h-20 bg-zinc-50 border-2 border-zinc-100 rounded-[40px] pl-20 pr-10 font-bold text-xl text-zinc-900 outline-none focus:border-blue-600/30 focus:bg-white transition-all shadow-inner" 
+                              className="w-full h-20 bg-zinc-50 border-2 border-zinc-100 rounded-[40px] pl-20 pr-10 font-bold text-xl text-zinc-900 outline-none focus:border-primary/30 focus:bg-white transition-all shadow-inner" 
                             />
                           </div>
                        </div>
                        <div className="space-y-3 px-4">
                           <label className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.4em] pl-2">Neural Email Path</label>
                           <div className="relative group">
-                            <Mail className="absolute left-8 top-1/2 -translate-y-1/2 text-zinc-300 group-focus-within:text-blue-600 transition-colors" size={24} />
+                            <Mail className="absolute left-8 top-1/2 -translate-y-1/2 text-zinc-300 group-focus-within:text-primary transition-colors" size={24} />
                             <input 
                               type="email" 
                               placeholder="john@example.com" 
                               value={passengerDetails.email}
                               onChange={(e) => setPassengerDetails({...passengerDetails, email: e.target.value})}
-                              className="w-full h-20 bg-zinc-50 border-2 border-zinc-100 rounded-[40px] pl-20 pr-10 font-bold text-xl text-zinc-900 outline-none focus:border-blue-600/30 focus:bg-white transition-all shadow-inner" 
+                              className="w-full h-20 bg-zinc-50 border-2 border-zinc-100 rounded-[40px] pl-20 pr-10 font-bold text-xl text-zinc-900 outline-none focus:border-primary/30 focus:bg-white transition-all shadow-inner" 
                             />
                           </div>
                        </div>
                     </div>
 
-                    <div className="p-10 bg-blue-600 rounded-[48px] shadow-[0_30px_60px_-10px_rgba(59,130,246,0.3)] text-white flex items-center justify-between group cursor-pointer hover:scale-[1.02] transition-transform">
+                    <div className="p-10 bg-primary rounded-[48px] shadow-[0_30px_60px_-10px_rgba(59,130,246,0.3)] text-white flex items-center justify-between group cursor-pointer hover:scale-[1.02] transition-transform">
                        <div className="flex items-center gap-6">
                           <div className="w-16 h-16 bg-white/20 rounded-3xl flex items-center justify-center backdrop-blur-md border border-white/20">
                              <CreditCard size={32} />
@@ -1281,7 +1280,7 @@ function LiveMapContent() {
                     <button 
                       onClick={confirmBooking} 
                       disabled={!passengerDetails.name || !passengerDetails.phone}
-                      className="w-full h-20 md:h-28 bg-zinc-900 text-white rounded-[32px] md:rounded-[40px] font-black text-xl md:text-3xl tracking-tighter hover:bg-blue-600 disabled:opacity-30 transition-all shadow-2xl flex items-center justify-center gap-4 md:gap-6 uppercase"
+                      className="w-full h-20 md:h-28 bg-zinc-900 text-white rounded-[32px] md:rounded-[40px] font-black text-xl md:text-3xl tracking-tighter hover:bg-primary disabled:opacity-30 transition-all shadow-2xl flex items-center justify-center gap-4 md:gap-6 uppercase"
                     >
                       {loading ? <div className="w-8 h-8 md:w-10 md:h-10 border-4 border-white border-t-transparent rounded-full animate-spin" /> : <>Finalize Booking <CheckCircle size={28} className="md:w-9 md:h-9 w-7 h-7" /></>}
                     </button>
@@ -1296,7 +1295,7 @@ function LiveMapContent() {
                     </div>
                     <div className="space-y-2 md:space-y-4">
                        <h2 className="text-4xl md:text-6xl font-black text-zinc-900 tracking-tighter uppercase italic">Success!</h2>
-                       <p className="text-zinc-500 font-bold max-w-xs mx-auto text-sm md:text-lg px-4 leading-relaxed">Your seat has been reserved. Neural-ID: <span className="font-black text-blue-600 block sm:inline">#{ticketId}</span></p>
+                       <p className="text-zinc-500 font-bold max-w-xs mx-auto text-sm md:text-lg px-4 leading-relaxed">Your seat has been reserved. Neural-ID: <span className="font-black text-primary block sm:inline">#{ticketId}</span></p>
                     </div>
                     
                     <div className="p-8 md:p-12 bg-white rounded-[48px] md:rounded-[64px] shadow-2xl md:shadow-[0_40px_100px_rgba(0,0,0,0.06)] border border-zinc-50">
@@ -1304,7 +1303,7 @@ function LiveMapContent() {
                     </div>
 
                     <div className="w-full space-y-4 md:space-y-6">
-                      <Link href="/my-bookings" className="block w-full h-20 md:h-24 bg-blue-600 text-white rounded-[32px] md:rounded-[40px] flex items-center justify-center text-xl md:text-3xl font-black tracking-tighter shadow-2xl shadow-blue-600/20 hover:scale-[1.02] active:scale-95 transition-all uppercase italic">
+                      <Link href="/my-bookings" className="block w-full h-20 md:h-24 bg-primary text-white rounded-[32px] md:rounded-[40px] flex items-center justify-center text-xl md:text-3xl font-black tracking-tighter shadow-2xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all uppercase italic">
                          View Ticket
                       </Link>
                       <button onClick={() => { setIsBooking(false); setSelectedBus(null); setStep(1); setTicketQuantity(1); }} className="text-zinc-400 font-black uppercase tracking-widest text-[10px] md:text-xs hover:text-zinc-900 mb-8 md:mb-0">Return to Grid</button>
@@ -1326,35 +1325,34 @@ function LiveMapContent() {
               onClick={() => setShowBusQR(false)}
             >
               <div 
-                className="w-full max-w-md bg-white rounded-[64px] p-12 space-y-12 shadow-2xl border-4 border-white/20 relative"
+                className="w-full max-w-sm bg-white rounded-[64px] p-10 space-y-8 shadow-2xl border-4 border-white/20 relative"
                 onClick={e => e.stopPropagation()}
               >
                 <div className="text-center space-y-4">
-                  <div className="inline-flex items-center gap-3 px-6 py-3 bg-blue-50 text-blue-600 rounded-full text-xs font-black uppercase tracking-widest">
-                    <QrCode size={20} /> Official Bus QR
+                  <div className="inline-flex items-center gap-3 px-6 py-3 bg-orange-50 text-primary rounded-full text-xs font-black uppercase tracking-widest">
+                    <QrCode size={20} /> Bus Fleet QR
                   </div>
                   <h3 className="text-4xl font-black text-zinc-900 tracking-tighter italic">{selectedBus.busNumber}</h3>
-                  <p className="text-zinc-400 font-bold text-xs uppercase tracking-[0.4em]">{selectedBus.routeId?.routeName}</p>
+                  <p className="text-zinc-400 font-bold text-[10px] uppercase tracking-[0.4em]">{selectedBus.routeId?.routeName}</p>
                 </div>
 
-                <div className="flex flex-col items-center gap-12">
-                   <div className="p-12 bg-white rounded-[64px] shadow-[0_40px_100px_rgba(0,0,0,0.06)] border-8 border-zinc-50 relative group">
+                <div className="flex flex-col items-center gap-10">
+                    <div className="p-8 bg-white rounded-[48px] shadow-[0_40px_100px_rgba(0,0,0,0.06)] border-4 border-zinc-50 relative group">
                       <QRCodeSVG 
                         value={JSON.stringify({
                           busId: selectedBus._id,
                           busNumber: selectedBus.busNumber,
                           route: selectedBus.routeId?.routeName,
-                          driver: "Capt. Matrix (AI)",
-                          source: selectedBus.routeId?.from,
-                          destination: selectedBus.routeId?.to,
-                          bookingUrl: typeof window !== 'undefined' ? `${window.location.origin}/live-map?busId=${selectedBus._id}` : ""
+                          auth: "JEFFBEN-SYNC"
                         })} 
-                        size={220} 
+                        size={200} 
                         className="transition-transform group-hover:scale-105 duration-500"
-                        fgColor="#1e293b" 
+                        fgColor="#18181b" 
+                        level="H"
+                        includeMargin={true}
                       />
-                      <div className="absolute inset-0 bg-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-[64px] pointer-events-none" />
-                   </div>
+                      <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-[48px] pointer-events-none" />
+                    </div>
 
                    <div className="w-full grid grid-cols-2 gap-6">
                       <div className="p-6 bg-zinc-50 rounded-[32px] border border-zinc-100">
@@ -1363,14 +1361,14 @@ function LiveMapContent() {
                       </div>
                       <div className="p-6 bg-zinc-50 rounded-[32px] border border-zinc-100">
                          <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest leading-none">Security</p>
-                         <p className="text-sm font-black text-blue-600 mt-1">ENCRYPTED</p>
+                         <p className="text-sm font-black text-primary mt-1">ENCRYPTED</p>
                       </div>
                    </div>
                 </div>
 
                 <button 
                   onClick={() => setShowBusQR(false)}
-                  className="w-full h-20 bg-zinc-900 text-white rounded-[32px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-xl"
+                  className="w-full h-20 bg-zinc-900 text-white rounded-[32px] font-black uppercase tracking-widest hover:bg-primary transition-all shadow-xl"
                 >
                   Dismiss Terminal
                 </button>
