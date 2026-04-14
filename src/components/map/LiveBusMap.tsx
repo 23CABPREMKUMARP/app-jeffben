@@ -2,33 +2,9 @@ import React, { useEffect, useState, useRef, Suspense } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
-const originalWarn = console.warn;
-const originalError = console.error;
-const originalLog = console.log;
-
-console.warn = (...args) => {
-  if (typeof args[0] === 'string' && (
-      args[0].includes('THREE.Clock: This module has been deprecated') ||
-      args[0].includes('non-static position') ||
-      args[0].includes('Context Lost')
-  )) return;
-  originalWarn(...args);
-};
-
-console.error = (...args) => {
-  const msg = args[0]?.toString() || "";
-  if (msg.includes('Context Lost') || msg.includes('play() request was interrupted') || msg.includes('removed from the document')) return;
-  originalError(...args);
-};
-
-console.log = (...args) => {
-  if (typeof args[0] === 'string' && args[0].includes('Context Lost')) return;
-  originalLog(...args);
-};
 
 import { createRoot, Root } from "react-dom/client";
-import { Canvas } from "@react-three/fiber";
-import { useGLTF, Stage, PresentationControls, Center, PerspectiveCamera, Bounds } from "@react-three/drei";
+import { Bus, Navigation, Radar } from "lucide-react";
 
 // --- Types ---
 interface BusLocation { lat: number; lng: number; rotation: number; }
@@ -64,62 +40,58 @@ interface MapLayers {
   showBuildings: boolean;
 }
 
-// Brisbane City Bus Model
-function BrisbaneBusModel() {
-  const { scene } = useGLTF("/brisbane_fixed.glb");
-  const clonedScene = React.useMemo(() => scene.clone(), [scene]);
-  
+const BusMarker = React.memo(({ isRunning, busNumber, isSelected, speed, availableSeats, from, to }: { isRunning: boolean, busNumber: string, isSelected: boolean, speed?: number, availableSeats?: number, from?: string, to?: string }) => {
   return (
-    <primitive 
-      object={clonedScene} 
-      scale={0.4} // Drastically scaled up 16x! The massive 250px container prevents clipping, but the model needs to be huge natively.
-    />
-  );
-}
+    <div className={`flex flex-col items-center justify-center relative transition-all duration-300 ${isSelected ? "z-50" : "z-10"}`}>
+      {/* HUD Plate - Pure Origin-Dest Zero-Gap Interface */}
+      <div className={`absolute -top-5 left-1/2 -translate-x-1/2 flex flex-col items-center transition-all duration-300 ${isSelected ? "z-50 scale-110" : "z-10 scale-90"}`}>
+          <div className={`bg-zinc-900/95 backdrop-blur-md border border-white/20 rounded-md px-2 py-0.5 shadow-2xl flex items-center gap-2 whitespace-nowrap ${isSelected ? "ring-2 ring-orange-500" : ""}`}>
+             {/* Dynamic Status Pulsar */}
+             <div className={`w-1 h-1 rounded-full bg-orange-500 ${isRunning ? "animate-pulse" : ""}`} />
 
-const BusMarkerCanvas = React.memo(({ rotationDegrees, isRunning, busNumber, isSelected, mapBearing, showTelemetry }: { rotationDegrees: number, isRunning: boolean, busNumber: string, isSelected: boolean, mapBearing: number, showTelemetry?: boolean }) => {
-  // DYNAMIC COMPASS SYNC: To visually align with the road in our non-rotating billboard canvas,
-  // we counter-rotate the 3D model by the MAP'S current bearing + the bus heading.
-  const visualRotation = rotationDegrees + mapBearing;
-  const rotationY = -(visualRotation * Math.PI) / 180;
+             {/* Pure Route Telemetry */}
+             <div className="flex items-center gap-1.5 text-[8px] font-black tracking-tight text-white uppercase italic">
+                <span className="text-orange-400">{from || "Origin"}</span>
+                <Navigation size={6} className="rotate-90 text-zinc-500 opacity-50" />
+                <span className="text-orange-400">{to || "Dest"}</span>
+             </div>
 
-  return (
-    <div className={`flex flex-col items-center justify-center relative pointer-events-none transition-all duration-700 ${isSelected ? "z-50" : "z-10"}`}>
-      {/* HUD Plate */}
-      <div className={`absolute -top-12 left-1/2 -translate-x-1/2 px-4 py-2 rounded-xl bg-white/95 backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.2)] border-2 transition-all duration-300 flex flex-col items-center gap-1 z-[100] pointer-events-auto ${isSelected ? "border-orange-500 scale-110 -translate-y-4" : "border-white"}`}>
-        <div className="flex items-center gap-2">
-           <div className={`w-2.5 h-2.5 rounded-full ${isRunning ? "bg-orange-600 animate-pulse shadow-[0_0_10px_rgba(255,107,0,0.8)]" : "bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.8)]"}`} />
-           <span className="text-[11px] font-black text-zinc-900 tracking-tight uppercase whitespace-nowrap">{busNumber}</span>
-        </div>
-        {showTelemetry && isRunning && (
-           <div className="text-[8px] text-orange-600 font-bold tracking-widest uppercase mt-1 px-2 border-t border-orange-500/10 pt-1 w-full text-center">
-             Radar Active
-           </div>
-        )}
+             {/* Micro Stats (Contextual on Selection) */}
+             {isSelected && (
+                <div className="flex items-center gap-1.5 border-l border-white/10 ml-0.5 pl-1.5 transition-all">
+                   <span className="text-[7px] font-black text-white">{speed || 0}<span className="text-zinc-500 pl-0.5">K</span></span>
+                   <span className="text-[7px] font-black text-emerald-400">{availableSeats || 0}<span className="text-zinc-500 pl-0.5">S</span></span>
+                </div>
+             )}
+          </div>
       </div>
 
-      {/* 3D Model Stage - Massive DOM wrapper size prevents DOM clipping during fast rotation */}
+      {/* 2D Bus Marker with Rapido-style Elevation */}
       <div 
-        className="w-[250px] h-[250px] relative pointer-events-none transition-transform duration-100 ease-out"
-        style={{ transform: `scale(calc(var(--bus-scale, 0.4) * ${isSelected ? 1.15 : 1}))`, transformOrigin: 'center center' }}
+        className="w-16 h-16 relative flex items-center justify-center transition-transform duration-300 ease-out"
+        style={{ transform: `scale(calc(var(--bus-scale, 1.0) * ${isSelected ? 1.4 : 1}))`, transformOrigin: 'center center' }}
       >
-         <Suspense fallback={null}>
-           <Canvas dpr={[1, 1.5]} frameloop="demand" gl={{ alpha: true, antialias: false, powerPreference: "high-performance" }}>
-              <PerspectiveCamera makeDefault position={[-10, 10, 10]} fov={35} onUpdate={(c) => c.lookAt(0, 0, 0)} />
-              <ambientLight intensity={1.5} />
-              <directionalLight position={[10, 20, 5]} intensity={2.5} castShadow={false} />
-              <directionalLight position={[-10, 20, -5]} intensity={1} castShadow={false} />
-              
-              <group rotation={[0, rotationY, 0]}>
-                 <Center>
-                    <BrisbaneBusModel />
-                 </Center>
-              </group>
-           </Canvas>
-        </Suspense>
-        
+        {/* Soft Shadow Underneath (Simulated Elevation) */}
+        <div className="absolute top-[80%] left-1/4 right-1/4 h-2 bg-black/40 blur-md rounded-full transform scale-x-150" />
+
+        {/* Live Neural Pulse Glow - High Contrast for Rapido Aesthetic */}
+        {isRunning && (
+          <div className="absolute inset-[-10px] rounded-full border-2 border-orange-500/30 animate-[ping_3s_infinite] opacity-50" />
+        )}
+
+        {/* Main Icon Body - Using the Premium Front-Face Asset */}
+        <div 
+          className="w-full h-full flex items-center justify-center transition-all duration-500 relative z-10"
+        >
+          <img 
+            src="/bus-marker-3d.png" 
+            alt="Bus" 
+            className={`w-14 h-14 object-contain drop-shadow-[0_15px_15px_rgba(0,0,0,0.4)] transition-transform duration-500 ${isSelected ? "scale-110" : "scale-100"}`} 
+          />
+        </div>
+
         {isSelected && (
-          <div className="absolute inset-x-8 inset-y-16 rounded-full border-4 border-orange-500 flex items-center justify-center animate-ping pointer-events-none" />
+          <div className="absolute -inset-1 rounded-full border-[3px] border-orange-500 shadow-[0_0_40px_rgba(255,107,0,0.8)] animate-pulse" />
         )}
       </div>
     </div>
@@ -143,31 +115,35 @@ export default function LiveBusMap({
   useEffect(() => {
     if (!mapContainer.current) return;
 
-    // Stable OSM Raster Base with 3D Pitch Built-In
+    // Vibrant Premium Map Theme (Voyager Style - Colorful and Detailed)
+    // Google Maps Style Roadmap Theme
     const map = new maplibregl.Map({
       container: mapContainer.current,
       style: {
         version: 8,
         sources: {
-          osm: {
+          google: {
             type: "raster",
-            tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+            tiles: ["https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"],
             tileSize: 256,
-            attribution: "© OpenStreetMap contributors"
+            attribution: "Google Maps"
           }
         },
         layers: [
           {
-            id: "osm",
+            id: "google-roadmap",
             type: "raster",
-            source: "osm"
+            source: "google",
+            paint: {
+              "raster-opacity": 1
+            }
           }
         ]
       },
       center: [76.9558, 11.0168],
       zoom: 14,
-      pitch: 60, // 3D Tilt for beautiful side-mapping
-      bearing: -15, // Slight landscape rotation
+      pitch: 45, // Professional angle
+      bearing: -10,
       scrollZoom: true
     });
 
@@ -242,7 +218,7 @@ export default function LiveBusMap({
         }
       });
 
-      // 2. Inner Route Line (The colored "lane")
+      // 2. Inner Route Line (The high-intensity "lane")
       map.addLayer({
         id: "routes-layer-inner",
         type: "line",
@@ -254,38 +230,45 @@ export default function LiveBusMap({
         paint: {
           "line-color": [
             "case",
-            ["==", ["get", "isActive"], true], "#FF6B00", // Bright orange for active
-            "#94a3b8" // Slate gray for alternate
+            ["==", ["get", "isActive"], true], "#FF3D00", // Neural Hot Orange
+            "#64748b" // Cool Slate for background routes
           ],
           "line-width": [
             "interpolate", ["linear"], ["zoom"],
-            10, 6,
-            14, 18,
-            18, 48
+            10, 8,
+            14, 20,
+            18, 52
           ],
           "line-opacity": [
             "case",
-            ["==", ["get", "isActive"], true], 1.0,
-            0.6
+            ["==", ["get", "isActive"], true], 0.9,
+            0.4
           ]
         }
       });
 
-      // 3. User to Bus Navigation Path (Neon Highlights)
+      // 3. User to Bus Navigation Path (Neon Radioactive Highlights)
       map.addSource("nav-routes", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
       map.addLayer({
         id: "nav-routes-casing",
         type: "line",
         source: "nav-routes",
         layout: { "line-cap": "round", "line-join": "round" },
-        paint: { "line-color": "#10b981", "line-width": ["interpolate", ["linear"], ["zoom"], 10, 8, 14, 18, 18, 30], "line-opacity": 0.4 }
+        paint: { 
+          "line-color": "#00E5FF", // Cyber Cyan Casing
+          "line-width": ["interpolate", ["linear"], ["zoom"], 10, 10, 14, 22, 18, 36], 
+          "line-opacity": 0.3 
+        }
       });
       map.addLayer({
         id: "nav-routes-inner",
         type: "line",
         source: "nav-routes",
         layout: { "line-cap": "round", "line-join": "round" },
-        paint: { "line-color": "#34d399", "line-width": ["interpolate", ["linear"], ["zoom"], 10, 4, 14, 10, 18, 20] }
+        paint: { 
+          "line-color": "#18FFFF", // Radioactive Cyan
+          "line-width": ["interpolate", ["linear"], ["zoom"], 10, 5, 14, 12, 18, 24] 
+        }
       });
     });
 
@@ -391,7 +374,7 @@ export default function LiveBusMap({
           .addTo(map);
           
         const root = createRoot(el);
-        root.render(<BusMarkerCanvas rotationDegrees={bus.location.rotation} isRunning={isRunning} busNumber={bus.busNumber} isSelected={isSelected} mapBearing={mapBearing} />);
+        root.render(<BusMarker rotationDegrees={bus.location.rotation} isRunning={isRunning} busNumber={bus.busNumber} isSelected={isSelected} mapBearing={mapBearing} from={bus.routeId?.from} to={bus.routeId?.to} />);
         busMarkers.current[bus._id] = { 
             marker, root, isRunning, isSelected, 
             rotation: bus.location.rotation,
@@ -404,13 +387,23 @@ export default function LiveBusMap({
         cache.targetLng = bus.location.lng;
         cache.targetLat = bus.location.lat;
         
-        // Critical: Must evaluate if rotation shifted, otherwise the bus is frozen facing the same default direction forever!
-        if (cache.isRunning !== isRunning || cache.isSelected !== isSelected || cache.rotation !== bus.location.rotation || cache.mapBearing !== mapBearing) {
+        // Critical: Re-render marker if telemetry or selection state shifts
+        if (cache.isRunning !== isRunning || cache.isSelected !== isSelected || cache.speed !== bus.speed || cache.availableSeats !== bus.availableSeats) {
            cache.isRunning = isRunning;
            cache.isSelected = isSelected;
-           cache.rotation = bus.location.rotation;
-           cache.mapBearing = mapBearing;
-           cache.root.render(<BusMarkerCanvas rotationDegrees={bus.location.rotation} isRunning={isRunning} busNumber={bus.busNumber} isSelected={isSelected} mapBearing={mapBearing} showTelemetry={layers.showTraffic} />);
+           cache.speed = bus.speed;
+           cache.availableSeats = bus.availableSeats;
+           cache.root.render(
+             <BusMarker 
+               isRunning={isRunning} 
+               busNumber={bus.busNumber} 
+               isSelected={isSelected} 
+               speed={bus.speed} 
+               availableSeats={bus.availableSeats} 
+               from={bus.routeId?.from}
+               to={bus.routeId?.to}
+             />
+           );
         }
         cache.marker.getElement().style.display = layers.showBuses ? 'block' : 'none';
       }
@@ -438,13 +431,13 @@ export default function LiveBusMap({
                      const el = document.createElement('div');
                      el.className = "relative flex flex-col items-center group cursor-pointer";
                      
-                     // The Dot
+                     // The Dot - Neural high-vis update
                      const dot = document.createElement('div');
-                     dot.className = "w-3 h-3 bg-white border-2 border-[#EA580C] rounded-full shadow-md transition-transform hover:scale-150";
+                     dot.className = "w-3 h-3 bg-white border-2 border-[#FF3D00] shadow-[0_0_12px_rgba(255,61,0,0.6)] rounded-full transition-transform hover:scale-150";
                      
-                     // The Label (Visible by default)
+                     // The Label (Reveals on Hover/Click)
                      const label = document.createElement('div');
-                     label.className = "absolute -bottom-8 bg-white/95 border border-[#EA580C]/20 text-[#EA580C] text-[10px] font-black tracking-tight px-2 py-0.5 rounded-md shadow-sm whitespace-nowrap backdrop-blur-sm pointer-events-none z-10";
+                     label.className = "absolute -bottom-8 bg-zinc-900 text-white text-[9px] font-black tracking-widest px-3 py-1 rounded-full shadow-2xl whitespace-nowrap backdrop-blur-md opacity-0 scale-90 group-hover:opacity-100 group-hover:scale-100 transition-all duration-300 pointer-events-none z-50 uppercase italic border border-white/20";
                      label.innerText = stop.stopName;
                      
                      el.appendChild(dot);

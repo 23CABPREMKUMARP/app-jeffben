@@ -5,7 +5,7 @@ import { motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { Linkedin, Twitter, Github, Mail, Youtube, Facebook } from "lucide-react";
+import { Linkedin, Twitter, Github, Mail, Youtube, Facebook, Ticket, ShieldCheck } from "lucide-react";
 import dynamic from "next/dynamic";
 
 const Globe = dynamic(() => import("@/src/registry/magicui/globe").then(m => m.Globe), { ssr: false });
@@ -19,10 +19,10 @@ export default function ProductPage() {
         <Link href="/live-map">
           <Image
             src="/logo2.png"
-            alt="JEFFBEN Corporate Branding"
-            width={600}
-            height={240}
-            className="h-16 sm:h-24 md:h-48 w-auto object-contain mix-blend-multiply transition-transform hover:scale-105 duration-300"
+            alt="JEFFBEN Branding"
+            width={500}
+            height={200}
+            className="h-24 sm:h-28 md:h-36 w-auto object-contain transition-transform hover:scale-105 duration-300 px-4 md:px-8"
             priority
           />
         </Link>
@@ -440,6 +440,18 @@ export default function ProductPage() {
               <span>{social.label}</span>
             </motion.a>
           ))}
+        </div>
+
+        <p className="mt-8 text-neutral-400 text-sm uppercase tracking-[0.3em] font-black italic">Digital Services & Verification</p>
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
+          <Link href="/get-ticket" className="px-8 py-4 bg-zinc-900 text-white rounded-2xl font-bold hover:bg-orange-600 transition-all active:scale-95 shadow-lg flex items-center gap-2">
+            <Ticket className="w-5 h-5" />
+             Get My Ticket
+          </Link>
+          <Link href="/conductor" className="px-8 py-4 bg-white border border-zinc-200 text-zinc-900 rounded-2xl font-bold hover:bg-zinc-50 transition-all active:scale-95 shadow-lg flex items-center gap-2">
+            <ShieldCheck className="w-5 h-5 text-orange-600" />
+             Conductor Portal
+          </Link>
         </div>
 
         <p className="mt-16 text-2xl md:text-3xl font-bold text-orange-600">

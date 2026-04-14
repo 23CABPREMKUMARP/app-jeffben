@@ -13,10 +13,24 @@ const BookingSchema = new mongoose.Schema({
   status: { type: String, enum: ["Confirmed", "Cancelled"], default: "Confirmed" },
   passengers: [
     {
-      name: { type: String, required: true },
-      email: { type: String, required: true },
+      name: { type: String, required: false },
+      email: { type: String, required: false },
       phone: { type: String, required: true },
     },
+  ],
+  validationStatus: { 
+    type: String, 
+    enum: ["Active", "Used", "Expired", "Cancelled"], 
+    default: "Active" 
+  },
+  qrToken: { type: String, unique: true },
+  scanHistory: [
+    {
+      scannedBy: { type: String }, // Admin or Collector ID
+      timestamp: { type: Date, default: Date.now },
+      location: { type: String },
+      action: { type: String } // "Validated", "Rejected", etc.
+    }
   ],
 });
 

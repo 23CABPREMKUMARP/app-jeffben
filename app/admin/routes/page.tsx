@@ -1,139 +1,228 @@
 "use client";
 
 import React, { useState } from "react";
-import { Map, Plus, Search, Trash2, Edit2, ChevronRight, Activity, MapPin, Navigation, LayoutDashboard, Bus, ListChecks, Shield } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { motion, AnimatePresence } from "motion/react";
+import { 
+  Map as MapIcon, 
+  MapPin, 
+  Plus, 
+  Search, 
+  Navigation, 
+  Clock, 
+  Route as RouteIcon, 
+  Activity, 
+  Trash2, 
+  Edit3, 
+  MoreVertical,
+  CheckCircle2,
+  Bus,
+  X,
+  Save,
+  Layers,
+  Zap
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
-const sidebarLinks = [
-  { icon: LayoutDashboard, label: "Overview", href: "/admin" },
-  { icon: Bus, label: "Fleet Management", href: "/admin/buses" },
-  { icon: ListChecks, label: "Ticket Ledger", href: "/admin/bookings" },
-  { icon: Map, label: "Route Engineering", href: "/admin/routes", active: true },
-  { icon: Shield, label: "Matrix Tracking", href: "/live-map" },
+const mockRoutes = [
+  { id: "R-101", name: "Corridor Alpha", from: "Coimbatore", to: "Avinashi", stops: 12, distance: "45km", time: "1h 15m", buses: 4, status: "Active" },
+  { id: "R-102", name: "Metro Vector", from: "Gandhipuram", to: "Saravanampatti", stops: 8, distance: "12km", time: "30m", buses: 6, status: "Active" },
+  { id: "R-103", name: "Transit Beta", from: "Podanur", to: "Mettupalayam", stops: 18, distance: "52km", time: "1h 45m", buses: 2, status: "Maintenance" },
+  { id: "R-104", name: "Quantum Link", from: "Ukkadam", to: "Pollachi", stops: 10, distance: "40km", time: "1h 05m", buses: 3, status: "Active" },
 ];
 
 export default function AdminRoutesPage() {
-  const [routes, setRoutes] = useState<any[]>([
-    { _id: "1", routeName: "Anna Salai Line", from: "Guindy", to: "T Nagar", stops: 12, status: "Active" },
-    { _id: "2", routeName: "ECR Express", from: "Mylapore", to: "OMR", stops: 8, status: "Active" },
-  ]);
+  const [isAdding, setIsAdding] = useState(false);
 
   return (
-    <main className="min-h-screen bg-zinc-50 font-sans flex text-zinc-900">
-      {/* Sidebar - Consistent with Admin Dashboard */}
-      <aside className="w-80 bg-white border-r border-zinc-200 flex flex-col p-8 fixed h-full z-50">
-        <div className="mb-12">
-           <Image src="/logo2.png" alt="Logo" width={200} height={80} className="object-contain" priority />
+    <div className="space-y-10 pb-20">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+          <h2 className="text-4xl font-black text-slate-900 tracking-tight leading-none">Route Engineering</h2>
+          <p className="text-slate-400 font-bold uppercase tracking-[0.3em] text-[10px] mt-4 leading-none flex items-center gap-2">
+            <span className="w-2 h-2 bg-orange-600 rounded-full" />
+            Define Matrix Paths & Stop Clusters
+          </p>
         </div>
-        <nav className="flex-1 space-y-2">
-           {sidebarLinks.map((link, i) => (
-             <Link key={i} href={link.href} className={`flex items-center gap-4 px-6 py-4 rounded-2xl font-bold transition-all group ${link.active ? "bg-orange-600 text-white shadow-xl shadow-orange-600/20" : "text-zinc-500 hover:bg-zinc-50 hover:text-orange-600"}`}>
-                <link.icon size={22} className={link.active ? "text-white" : "text-zinc-400 group-hover:text-orange-600"} />
-                <span>{link.label}</span>
-                {link.active && <ChevronRight size={18} className="ml-auto" />}
-             </Link>
-           ))}
-        </nav>
-      </aside>
+        <button 
+          onClick={() => setIsAdding(true)}
+          className="flex items-center gap-3 bg-slate-900 text-white px-8 py-4 rounded-[20px] font-black text-sm tracking-widest hover:bg-black transition-all shadow-xl hover:shadow-black/20 uppercase italic"
+        >
+          <Plus size={20} /> Design New Path
+        </button>
+      </div>
 
-      {/* Main Content */}
-      <section className="flex-1 ml-80 p-12 bg-zinc-50">
-        <header className="flex items-center justify-between mb-12">
-           <div>
-             <h2 className="text-4xl font-black text-zinc-900 tracking-tight italic">Route Engineering</h2>
-             <p className="text-zinc-400 font-bold uppercase tracking-[0.2em] text-[10px] mt-2 leading-none">Mapping the future of transit</p>
-           </div>
-           <button className="h-16 bg-black text-white px-10 rounded-[28px] font-black italic text-sm tracking-widest flex items-center gap-4 hover:scale-105 active:scale-95 transition-all shadow-2xl">
-              <Plus size={20} /> Deploy New Route
-           </button>
-        </header>
+      {/* Stats Quick Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {[
+           { label: "Active Routes", value: "12", icon: Navigation, color: "text-blue-600", bg: "bg-blue-50" },
+           { label: "Total Stops", value: "84", icon: MapPin, color: "text-emerald-600", bg: "bg-emerald-50" },
+           { label: "Fleet Coverage", value: "94%", icon: RouteIcon, color: "text-orange-600", bg: "bg-orange-50" },
+           { label: "Optimization", value: "Quantum", icon: Zap, color: "text-purple-600", bg: "bg-purple-50" },
+        ].map((stat, i) => (
+          <div key={i} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
+             <div className={`w-12 h-12 ${stat.bg} ${stat.color} rounded-2xl flex items-center justify-center`}>
+                <stat.icon size={22} />
+             </div>
+             <div>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
+                <p className="text-xl font-black text-slate-900 uppercase italic">{stat.value}</p>
+             </div>
+          </div>
+        ))}
+      </div>
 
-        <div className="bg-white rounded-[48px] shadow-sm border border-zinc-100 overflow-hidden">
-           <div className="p-8 border-b border-zinc-50 flex items-center justify-between bg-zinc-50/10">
-              <div className="flex items-center gap-6 flex-1 max-w-xl">
-                 <div className="relative flex-1">
-                    <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
-                    <input type="text" placeholder="Search route matrix..." className="w-full h-14 bg-white border-none rounded-2xl px-14 font-bold text-sm outline-none focus:ring-4 focus:ring-orange-600/5 transition-all" />
-                 </div>
-              </div>
-           </div>
-
-           <div className="p-4 overflow-x-auto">
-              <table className="w-full border-collapse">
-                 <thead>
-                    <tr className="text-left">
-                       <th className="p-6 text-[10px] font-black text-zinc-400 uppercase tracking-widest">Route Core</th>
-                       <th className="p-6 text-[10px] font-black text-zinc-400 uppercase tracking-widest">Topology</th>
-                       <th className="p-6 text-[10px] font-black text-zinc-400 uppercase tracking-widest">Stops</th>
-                       <th className="p-6 text-[10px] font-black text-zinc-400 uppercase tracking-widest">Integrity</th>
-                       <th className="p-6 text-[10px] font-black text-zinc-400 uppercase tracking-widest">Actions</th>
-                    </tr>
-                 </thead>
-                 <tbody className="divide-y divide-zinc-50">
-                    {routes.map((route) => (
-                       <tr key={route._id} className="group hover:bg-zinc-50/50 transition-all">
-                          <td className="p-6">
-                             <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 bg-orange-600/10 rounded-2xl flex items-center justify-center text-orange-600 border border-orange-600/20 group-hover:scale-110 transition-transform">
-                                   <Map size={20} />
-                                </div>
-                                <div>
-                                   <p className="font-black italic text-zinc-900 leading-none">{route.routeName}</p>
-                                   <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-tighter mt-1 leading-none">Verified Route Link</p>
-                                </div>
-                             </div>
-                          </td>
-                          <td className="p-6">
-                             <div className="flex items-center gap-3">
-                                <span className="text-xs font-bold text-zinc-500">{route.from}</span>
-                                <ChevronRight size={14} className="text-zinc-200" />
-                                <span className="text-xs font-bold text-zinc-900">{route.to}</span>
-                             </div>
-                          </td>
-                          <td className="p-6">
-                             <div className="flex items-center gap-2">
-                                <Navigation size={14} className="text-zinc-400" />
-                                <span className="text-xs font-black italic">{route.stops} Junctions</span>
-                             </div>
-                          </td>
-                          <td className="p-6">
-                             <span className="px-4 py-2 bg-green-50 text-green-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-green-600/10">● {route.status}</span>
-                          </td>
-                          <td className="p-6">
-                             <div className="flex items-center gap-3">
-                                <button className="p-3 hover:bg-white hover:text-orange-600 rounded-xl transition-all shadow-sm border border-transparent hover:border-zinc-100">
-                                   <Edit2 size={16} />
-                                </button>
-                                <button className="p-3 hover:bg-red-50 hover:text-red-500 rounded-xl transition-all border border-transparent hover:border-red-100 text-zinc-300">
-                                   <Trash2 size={16} />
-                                </button>
-                             </div>
-                          </td>
-                       </tr>
-                    ))}
-                 </tbody>
-              </table>
-           </div>
+      {/* Control Bar */}
+      <div className="flex flex-col md:flex-row gap-4 items-center bg-white p-4 rounded-[30px] border border-slate-100 shadow-sm">
+        <div className="relative flex-1 group">
+          <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-orange-600 transition-colors" size={20} />
+          <input 
+            type="text" 
+            placeholder="Search Routes by Name, Origin, or Destination..." 
+            className="w-full h-14 bg-slate-50 border-none rounded-2xl pl-16 pr-6 text-sm font-bold placeholder:text-slate-400 outline-none focus:ring-4 focus:ring-orange-600/5 transition-all"
+          />
         </div>
+      </div>
 
-        {/* Route Graph Visualizer (Mock) */}
-        <div className="mt-12 p-8 bg-zinc-900 rounded-[48px] border border-white/5 shadow-2xl relative overflow-hidden group">
-           <div className="absolute inset-0 bg-gradient-to-tr from-orange-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
-           <div className="relative z-10 flex items-center justify-between">
-              <div className="space-y-4">
-                 <h3 className="text-2xl font-black italic text-white tracking-widest uppercase italic uppercase">Tactical Route Manifest</h3>
-                 <p className="text-zinc-500 text-xs font-bold max-w-sm">Synchronize spatial coordinates and path vectors for real-time telemetry updates. Current accuracy: 99.8%.</p>
-                 <button className="bg-orange-600 text-white px-8 py-4 rounded-2xl font-black italic text-xs tracking-widest hover:bg-orange-500 shadow-xl self-start mt-4">Initialize Path Plotting</button>
+      {/* Routes Master Table */}
+      <div className="bg-white rounded-[40px] border border-slate-100 shadow-sm overflow-hidden">
+        <table className="w-full text-left">
+          <thead className="bg-slate-50/50">
+            <tr>
+              <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Route Identity</th>
+              <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Vector Path</th>
+              <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Topology</th>
+              <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Deployment</th>
+              <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Integrity</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-50 font-bold text-sm">
+            {mockRoutes.map((route, i) => (
+              <tr key={i} className="hover:bg-slate-50/50 transition-all duration-300 group">
+                <td className="px-10 py-8">
+                  <div>
+                    <p className="text-base font-black text-slate-900 leading-none">{route.name}</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">{route.id}</p>
+                  </div>
+                </td>
+                <td className="px-10 py-8">
+                  <div className="flex items-center gap-4">
+                     <div className="text-right">
+                        <p className="text-[8px] font-black text-slate-300 uppercase tracking-widest mb-1">Origin</p>
+                        <p className="text-xs text-slate-900 font-bold">{route.from}</p>
+                     </div>
+                     <div className="flex flex-col items-center gap-1 group-hover:scale-110 transition-transform">
+                        <Navigation size={12} className="text-orange-500 rotate-90" />
+                        <div className="w-12 h-px bg-slate-200" />
+                     </div>
+                     <div>
+                        <p className="text-[8px] font-black text-slate-300 uppercase tracking-widest mb-1">Destination</p>
+                        <p className="text-xs text-slate-900 font-bold">{route.to}</p>
+                     </div>
+                  </div>
+                </td>
+                <td className="px-10 py-8">
+                   <div className="flex items-center gap-8">
+                      <div className="flex flex-col items-center">
+                         <MapPin size={14} className="text-blue-500 mb-1" />
+                         <span className="text-xs font-black">{route.stops} <span className="text-[9px] text-slate-400">STOPS</span></span>
+                      </div>
+                      <div className="flex flex-col items-center border-l border-slate-100 pl-8">
+                         <Clock size={14} className="text-orange-500 mb-1" />
+                         <span className="text-xs font-black">{route.time}</span>
+                      </div>
+                   </div>
+                </td>
+                <td className="px-10 py-8 text-center w-40">
+                   <div className="px-4 py-2 bg-slate-100 rounded-xl flex items-center justify-between group-hover:bg-orange-600 group-hover:text-white transition-all">
+                      <Bus size={14} />
+                      <span className="text-xs font-black">{route.buses} <span className="text-[9px] opacity-60">ACTIVE</span></span>
+                   </div>
+                </td>
+                <td className="px-10 py-8 text-right">
+                   <div className="flex items-center justify-end gap-2">
+                    <button className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 hover:bg-slate-900 hover:text-white transition-all shadow-sm">
+                      <Edit3 size={16} />
+                    </button>
+                    <button className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 hover:bg-red-500 hover:text-white transition-all shadow-sm">
+                      <Trash2 size={16} />
+                    </button>
+                   </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Add Modal */}
+      <AnimatePresence>
+        {isAdding && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center px-6 pointer-events-none">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsAdding(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-xl pointer-events-auto" />
+            <motion.div initial={{ scale: 0.9, opacity: 0, y: 30 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 30 }} className="bg-white rounded-[50px] w-full max-w-4xl relative overflow-hidden shadow-2xl border border-white/20 pointer-events-auto max-h-[90vh] overflow-y-auto custom-scrollbar" >
+              <div className="p-10 md:p-14 space-y-10">
+                <div className="flex items-center justify-between">
+                   <div>
+                     <h3 className="text-3xl font-black text-slate-900 tracking-tight leading-none">Route Schematic Design</h3>
+                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-4">Defining new matrix corridor</p>
+                   </div>
+                   <button onClick={() => setIsAdding(false)} className="p-3 bg-slate-50 rounded-full hover:bg-slate-100 transition-all">
+                     <X size={28} className="text-slate-400" />
+                   </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                   <div className="space-y-8">
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Corridor Name</label>
+                        <input type="text" placeholder="Matrix Alpha Link" className="w-full h-16 bg-slate-50 border-2 border-slate-50 rounded-3xl px-8 font-bold text-slate-900 outline-none focus:border-orange-600/10 focus:bg-white transition-all shadow-inner" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-3">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Origin Hub</label>
+                          <input type="text" placeholder="Start Unit" className="w-full h-16 bg-slate-50 border-2 border-slate-50 rounded-3xl px-8 font-bold text-slate-900 outline-none focus:border-orange-600/10 focus:bg-white transition-all shadow-inner" />
+                        </div>
+                        <div className="space-y-3">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Terminus Hub</label>
+                          <input type="text" placeholder="End Unit" className="w-full h-16 bg-slate-50 border-2 border-slate-50 rounded-3xl px-8 font-bold text-slate-900 outline-none focus:border-orange-600/10 focus:bg-white transition-all shadow-inner" />
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Topology Complexity (Stops)</label>
+                        <div className="flex items-center gap-4">
+                           <button className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center font-black">-</button>
+                           <div className="flex-1 h-16 bg-slate-100 rounded-3xl flex items-center justify-center font-black text-xl">12</div>
+                           <button className="w-14 h-14 bg-slate-900 text-white rounded-2xl flex items-center justify-center font-black">+</button>
+                        </div>
+                      </div>
+                   </div>
+                   
+                   {/* Map Interaction Placeholder */}
+                   <div className="bg-slate-50 rounded-[40px] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center p-10 text-center space-y-6">
+                      <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center text-slate-300 shadow-sm border border-slate-100">
+                         <Layers size={32} />
+                      </div>
+                      <div>
+                         <p className="text-sm font-bold text-slate-900">Interactive Path Mapping</p>
+                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-2">Initialize spatial coordinate terminal to draw route paths on global matrix</p>
+                      </div>
+                      <button className="bg-white border border-slate-200 px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-900 hover:text-white transition-all shadow-lg">Load Spatial Module</button>
+                   </div>
+                </div>
+
+                <div className="flex gap-4 pt-4">
+                  <button onClick={() => setIsAdding(false)} className="flex-1 h-18 bg-white border-2 border-slate-100 text-slate-400 rounded-[28px] font-black text-xs uppercase tracking-widest hover:bg-slate-50 transition-all">
+                    Discard Schematic
+                  </button>
+                  <button className="flex-[2] h-18 bg-slate-900 text-white rounded-[28px] font-black text-sm uppercase tracking-widest hover:bg-black transition-all shadow-2xl shadow-black/30 flex items-center justify-center gap-3 italic">
+                    <Save size={20} /> Authorize Route Vector
+                  </button>
+                </div>
               </div>
-              <div className="w-64 h-64 border-4 border-white/5 rounded-full flex items-center justify-center relative">
-                 <div className="absolute inset-0 border-2 border-orange-500/20 rounded-full animate-ping" />
-                 <MapPin size={48} className="text-orange-500 shadow-lg shadow-orange-500/50" />
-              </div>
-           </div>
-        </div>
-      </section>
-    </main>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
