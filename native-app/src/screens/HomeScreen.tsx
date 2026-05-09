@@ -10,7 +10,6 @@ import {
   SafeAreaView,
   StatusBar
 } from 'react-native';
-import { motion } from 'framer-motion'; // Wait, motion doesn't work in RN. I'll use Moti or Reanimated.
 import { ArrowRight, Zap, Shield, Navigation } from 'lucide-react-native';
 import Animated, { FadeInUp, FadeInDown } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
